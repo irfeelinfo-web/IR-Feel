@@ -1,5 +1,5 @@
 import "server-only"
-import { createClient, type Client, type InStatement } from "@libsql/client"
+import { createClient as createWebClient, type Client, type InStatement } from "@libsql/client/web"
 import { existsSync, readFileSync, renameSync, mkdirSync } from "fs"
 import { join } from "path"
 import { randomBytes } from "crypto"
@@ -7,7 +7,7 @@ import { randomBytes } from "crypto"
 /* ── Turso / LibSQL client ── */
 const globalForDb = globalThis as unknown as { __libsql?: Client; __dbReady?: boolean }
 
-function getClient(): Client {
+async function getClientAsync(): Promise<Client> {
   if (globalForDb.__libsql) return globalForDb.__libsql
 
   const isProduction = !!process.env.TURSO_DATABASE_URL
@@ -15,22 +15,28 @@ function getClient(): Client {
   let client: Client
 
   if (isProduction) {
-    // Production: connect to remote Turso database
-    client = createClient({
+    // Production: connect to remote Turso database (web client works with Turbopack)
+    client = createWebClient({
       url: process.env.TURSO_DATABASE_URL!,
       authToken: process.env.TURSO_AUTH_TOKEN,
     })
   } else {
-    // Development: use local SQLite file (same as before)
+    // Development: use local SQLite file (needs full @libsql/client for file: URLs)
+    const { createClient } = await import("@libsql/client")
     const dataDir = join(process.cwd(), ".data")
     if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true })
     client = createClient({
       url: `file:${join(dataDir, "store.db")}`,
-    })
+    }) as unknown as Client
   }
 
   globalForDb.__libsql = client
   return client
+}
+
+function getClient(): Client {
+  if (!globalForDb.__libsql) throw new Error("DB not initialized. Call initDb() first.")
+  return globalForDb.__libsql
 }
 
 /** Generate a random order UID like "IRF-A7X3K9B2" */
@@ -45,7 +51,7 @@ export function generateOrderUid(): string {
 /* ── Initialize database tables ── */
 async function initDb(): Promise<void> {
   if (globalForDb.__dbReady) return
-  const client = getClient()
+  const client = await getClientAsync()
 
   await client.executeMultiple(`
     CREATE TABLE IF NOT EXISTS site_content (
