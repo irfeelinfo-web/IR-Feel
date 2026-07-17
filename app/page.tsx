@@ -10,6 +10,8 @@ import { CustomerReviews } from "@/components/home/customer-reviews"
 import { getHome } from "@/lib/content"
 import { buildMetadata } from "@/lib/seo"
 
+export const dynamic = "force-dynamic"
+
 
 export async function generateMetadata() {
   return await buildMetadata({ path: "/" })

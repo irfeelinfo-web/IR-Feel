@@ -5,6 +5,8 @@ import { JsonLd } from "@/components/json-ld"
 import { buildMetadata, SITE_URL, absoluteUrl, BRAND_NAME, BRAND_EMAIL } from "@/lib/seo"
 import { getPages } from "@/lib/content"
 
+export const dynamic = "force-dynamic"
+
 
 export async function generateMetadata() {
   return await buildMetadata({

@@ -5,6 +5,8 @@ import { TrackOrderForm } from "./track-order-form"
 import { buildMetadata } from "@/lib/seo"
 import { getPages } from "@/lib/content"
 
+export const dynamic = "force-dynamic"
+
 
 export async function generateMetadata() {
   return await buildMetadata({

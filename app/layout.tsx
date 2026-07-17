@@ -12,6 +12,8 @@ import { getLoggedInCustomer } from '@/lib/customer-auth'
 import { buildMetadata, SITE_URL, absoluteUrl, BRAND_EMAIL } from '@/lib/seo'
 import './globals.css'
 
+export const dynamic = "force-dynamic"
+
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',

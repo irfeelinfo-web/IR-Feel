@@ -8,6 +8,8 @@ import { collections } from "@/lib/products"
 import { getCollectionProducts } from "@/lib/products-db"
 import { buildMetadata } from "@/lib/seo"
 
+export const dynamic = "force-dynamic"
+
 
 export async function generateMetadata() {
   return await buildMetadata({

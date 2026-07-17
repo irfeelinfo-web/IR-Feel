@@ -10,6 +10,8 @@ import { collections, getCollectionBySlug } from "@/lib/products"
 import { getCollectionProducts } from "@/lib/products-db"
 import { buildMetadata } from "@/lib/seo"
 
+export const dynamic = "force-dynamic"
+
 
 export function generateStaticParams() {
   return collections.map((c) => ({ slug: c.slug }))

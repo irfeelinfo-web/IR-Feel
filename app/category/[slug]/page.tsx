@@ -11,6 +11,8 @@ import { getAllProducts } from "@/lib/products-db"
 import type { ShopCategory } from "@/lib/products"
 import { buildMetadata } from "@/lib/seo"
 
+export const dynamic = "force-dynamic"
+
 type CategoryConfig = {
   title: string
   navKey: string

@@ -8,6 +8,8 @@ import { ShopContent } from "@/components/shop/shop-content"
 import { getAllProducts } from "@/lib/products-db"
 import { buildMetadata } from "@/lib/seo"
 
+export const dynamic = "force-dynamic"
+
 
 export async function generateMetadata() {
   return await buildMetadata({
