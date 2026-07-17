@@ -2,16 +2,17 @@ import type { MetadataRoute } from "next"
 import { SITE_URL } from "@/lib/seo"
 import { collections } from "@/lib/products"
 import { getAllProducts } from "@/lib/products-db"
-import { getHome } from "@/lib/content"
+
+import { getSiteConfig } from "@/lib/site-config"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
   
   let dynamicCategories: string[] = []
   try {
-    const home = getHome()
-    dynamicCategories = home.categories.map((c) => c.name.toLowerCase())
-  } catch {
+    const config = await getSiteConfig()
+    dynamicCategories = config.home.categories.map((c) => c.title.toLowerCase())
+  } catch (e) {
     dynamicCategories = ["men", "women", "kids", "accessories"] // fallback
   }
 

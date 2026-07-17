@@ -16,7 +16,3 @@ node_modules
 .DS_Store
 .data/
 .vercel
-
-# Deploy scripts
-deploy.bat
-setup-git.bat
