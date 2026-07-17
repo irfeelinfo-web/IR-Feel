@@ -25,16 +25,9 @@ const nextConfig = {
       },
     ],
   },
-  ...(process.env.NODE_ENV === 'development' && {
-    allowedDevOrigins: ['localhost'],
-  }),
-  // Prevent Turbopack/Webpack from bundling native Node.js packages
   serverExternalPackages: [
     "@libsql/client",
-    "@libsql/client/web",
-    "@libsql/client/node",
     "better-sqlite3",
-    "libsql",
   ],
 }
 
