@@ -32,7 +32,7 @@ function revalidateStorefront() {
 
 export async function loginAction(_prev: unknown, formData: FormData) {
   const fingerprint = await generateFingerprint()
-  if (!checkRateLimit(fingerprint, 5, 60000)) {
+  if (!await checkRateLimit(fingerprint, 5, 60000)) {
     return { error: "অনেকবার চেষ্টা করা হয়েছে। এক মিনিট পর আবার চেষ্টা করুন।" }
   }
 
@@ -137,7 +137,7 @@ export type NewOrderInput = {
 /** Public action — customers place orders from checkout without an admin session. */
 export async function createOrderAction(input: NewOrderInput) {
   const fingerprint = await generateFingerprint()
-  if (!checkRateLimit(fingerprint, 5, 60000)) {
+  if (!await checkRateLimit(fingerprint, 5, 60000)) {
     return { ok: false as const, error: "খুব বেশি রিকোয়েস্ট করা হয়েছে। একটু পর আবার চেষ্টা করুন।" }
   }
 
@@ -192,7 +192,7 @@ export async function submitContactAction(input: {
   message: string
 }) {
   const fingerprint = await generateFingerprint()
-  if (!checkRateLimit(fingerprint, 3, 60000)) {
+  if (!await checkRateLimit(fingerprint, 3, 60000)) {
     return { ok: false as const, error: "খুব বেশি রিকোয়েস্ট করা হয়েছে। একটু পর আবার চেষ্টা করুন।" }
   }
 
@@ -214,7 +214,7 @@ export async function submitContactAction(input: {
 /** Public action — visitors subscribe to newsletter. */
 export async function subscribeNewsletterAction(email: string) {
   const fingerprint = await generateFingerprint()
-  if (!checkRateLimit(fingerprint, 5, 60000)) {
+  if (!await checkRateLimit(fingerprint, 5, 60000)) {
     return { ok: false as const, error: "খুব বেশি রিকোয়েস্ট করা হয়েছে। একটু পর আবার চেষ্টা করুন।" }
   }
 
@@ -262,7 +262,7 @@ export async function sendChatMessageAction(input: {
   message: string
 }) {
   const fingerprint = await generateFingerprint()
-  if (!checkRateLimit(fingerprint, 10, 60000)) {
+  if (!await checkRateLimit(fingerprint, 10, 60000)) {
     return { ok: false as const, error: "খুব বেশি মেসেজ পাঠানো হয়েছে। একটু পর আবার চেষ্টা করুন।" }
   }
   if (!input.sessionId || !input.name || !input.message) {
@@ -350,7 +350,7 @@ export async function registerCustomerAction(input: {
   password?: string
 }) {
   const fingerprint = await generateFingerprint()
-  if (!checkRateLimit(fingerprint, 5, 60000)) {
+  if (!await checkRateLimit(fingerprint, 5, 60000)) {
     return { ok: false as const, error: "খুব বেশি রিকোয়েস্ট করা হয়েছে। একটু পর আবার চেষ্টা করুন।" }
   }
 
@@ -402,8 +402,8 @@ export async function registerCustomerAction(input: {
     await createCustomerSession(customerId)
 
     // Return full customer data so client doesn't need an extra /api/auth/me call
-    const full = await getOne<{ id: number; name: string; phone: string; email: string; address: string; city: string; avatar: string; google_id: string | null }>(
-      "SELECT id, name, phone, email, address, city, COALESCE(avatar, '') as avatar, google_id FROM customers WHERE id = ?",
+    const full = await getOne<{ id: number; name: string; phone: string; email: string; address: string; city: string; avatar: string; google_id: string | null; reward_points: number }>(
+      "SELECT id, name, phone, email, address, city, COALESCE(avatar, '') as avatar, google_id, COALESCE(reward_points, 0) as reward_points FROM customers WHERE id = ?",
       [customerId]
     )
 
@@ -419,7 +419,7 @@ export async function registerCustomerAction(input: {
 /** Public action — login with phone number or email and password */
 export async function customerLoginAction(credential: string, password?: string) {
   const fingerprint = await generateFingerprint()
-  if (!checkRateLimit(fingerprint, 10, 60000)) {
+  if (!await checkRateLimit(fingerprint, 10, 60000)) {
     return { ok: false as const, error: "খুব বেশি রিকোয়েস্ট করা হয়েছে। একটু পর আবার চেষ্টা করুন।" }
   }
   
@@ -465,8 +465,8 @@ export async function customerLoginAction(credential: string, password?: string)
     await createCustomerSession(customer.id)
 
     // Return full customer data so client doesn't need an extra /api/auth/me call
-    const full = await getOne<{ id: number; name: string; phone: string; email: string; address: string; city: string; avatar: string; google_id: string | null }>(
-      "SELECT id, name, phone, email, address, city, COALESCE(avatar, '') as avatar, google_id FROM customers WHERE id = ?",
+    const full = await getOne<{ id: number; name: string; phone: string; email: string; address: string; city: string; avatar: string; google_id: string | null; reward_points: number }>(
+      "SELECT id, name, phone, email, address, city, COALESCE(avatar, '') as avatar, google_id, COALESCE(reward_points, 0) as reward_points FROM customers WHERE id = ?",
       [customer.id]
     )
     return { ok: true as const, customer: full }
@@ -485,7 +485,7 @@ export async function updateCustomerProfileAction(
   input: { name: string; phone: string; email: string; address?: string; city?: string },
 ) {
   const fingerprint = await generateFingerprint()
-  if (!checkRateLimit(fingerprint, 10, 60000)) {
+  if (!await checkRateLimit(fingerprint, 10, 60000)) {
     return { ok: false as const, error: "খুব বেশি রিকোয়েস্ট করা হয়েছে।" }
   }
 
@@ -582,7 +582,7 @@ export async function submitChangeRequestAction(
   newValue: string,
 ) {
   const fingerprint = await generateFingerprint()
-  if (!checkRateLimit(fingerprint, 5, 60000)) {
+  if (!await checkRateLimit(fingerprint, 5, 60000)) {
     return { ok: false as const, error: "খুব বেশি রিকোয়েস্ট করা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।" }
   }
 

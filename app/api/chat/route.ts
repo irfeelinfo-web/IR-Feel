@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 /** POST /api/chat — send a new chat message (visitor side) */
 export async function POST(req: NextRequest) {
   const fingerprint = await generateFingerprint()
-  if (!checkRateLimit(fingerprint, 10, 60000)) {
+  if (!await checkRateLimit(fingerprint, 10, 60000)) {
     return NextResponse.json(
       { error: "Too many messages. Please wait." },
       { status: 429 },

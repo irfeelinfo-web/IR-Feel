@@ -97,7 +97,8 @@ export async function POST(request: Request) {
       city: string
       avatar: string
       google_id: string
-    }>("SELECT id, name, phone, email, address, city, avatar, google_id FROM customers WHERE id = ?", [customer.id])
+      reward_points: number
+    }>("SELECT id, name, phone, email, address, city, avatar, google_id, reward_points FROM customers WHERE id = ?", [customer.id])
 
     return NextResponse.json({ ok: true, customer: full })
   } catch (err) {

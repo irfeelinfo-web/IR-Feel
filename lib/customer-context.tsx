@@ -11,6 +11,7 @@ export type CustomerData = {
   city: string
   avatar: string
   google_id: string | null
+  reward_points: number
 } | null
 
 type CustomerContextType = {
