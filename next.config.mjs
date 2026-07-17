@@ -26,11 +26,16 @@ const nextConfig = {
     ],
   },
   ...(process.env.NODE_ENV === 'development' && {
-    // If you want to test on mobile, add your local IP here (e.g. '192.168.0.x')
     allowedDevOrigins: ['localhost'],
   }),
-  serverExternalPackages: ["@libsql/client"],
+  // Prevent Turbopack/Webpack from bundling native Node.js packages
+  serverExternalPackages: [
+    "@libsql/client",
+    "@libsql/client/web",
+    "@libsql/client/node",
+    "better-sqlite3",
+    "libsql",
+  ],
 }
 
 export default nextConfig
-

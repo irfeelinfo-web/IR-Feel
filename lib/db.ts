@@ -1,42 +1,51 @@
 import "server-only"
-import { createClient as createWebClient, type Client, type InStatement } from "@libsql/client/web"
 import { existsSync, readFileSync, renameSync, mkdirSync } from "fs"
 import { join } from "path"
 import { randomBytes } from "crypto"
 
-/* ── Turso / LibSQL client ── */
-const globalForDb = globalThis as unknown as { __libsql?: Client; __dbReady?: boolean }
+/* ── Inline types — no import from @libsql/client needed ── */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type DbArgs = any[]
+interface DbResult {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  rows: any[]
+  rowsAffected: number
+  lastInsertRowid: bigint | number | null
+}
+interface DbClient {
+  execute(stmt: { sql: string; args: DbArgs } | string): Promise<DbResult>
+  executeMultiple(sql: string): Promise<void>
+}
 
-async function getClientAsync(): Promise<Client> {
+/* ── Turso / LibSQL client ── */
+const globalForDb = globalThis as unknown as { __libsql?: DbClient; __dbReady?: boolean }
+
+async function ensureClient(): Promise<DbClient> {
   if (globalForDb.__libsql) return globalForDb.__libsql
 
   const isProduction = !!process.env.TURSO_DATABASE_URL
-
-  let client: Client
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let client: any
 
   if (isProduction) {
-    // Production: connect to remote Turso database (web client works with Turbopack)
-    client = createWebClient({
+    // Production (Vercel): dynamic import of web client — pure JS, no native deps
+    const mod = await import("@libsql/client/web")
+    client = mod.createClient({
       url: process.env.TURSO_DATABASE_URL!,
       authToken: process.env.TURSO_AUTH_TOKEN,
     })
   } else {
-    // Development: use local SQLite file (needs full @libsql/client for file: URLs)
-    const { createClient } = await import("@libsql/client")
+    // Development: dynamic import of full client for file: URLs
+    const mod = await import("@libsql/client")
     const dataDir = join(process.cwd(), ".data")
     if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true })
-    client = createClient({
+    client = mod.createClient({
       url: `file:${join(dataDir, "store.db")}`,
-    }) as unknown as Client
+    })
   }
 
-  globalForDb.__libsql = client
-  return client
-}
-
-function getClient(): Client {
-  if (!globalForDb.__libsql) throw new Error("DB not initialized. Call initDb() first.")
-  return globalForDb.__libsql
+  globalForDb.__libsql = client as DbClient
+  return client as DbClient
 }
 
 /** Generate a random order UID like "IRF-A7X3K9B2" */
@@ -51,7 +60,7 @@ export function generateOrderUid(): string {
 /* ── Initialize database tables ── */
 async function initDb(): Promise<void> {
   if (globalForDb.__dbReady) return
-  const client = await getClientAsync()
+  const client = await ensureClient()
 
   await client.executeMultiple(`
     CREATE TABLE IF NOT EXISTS site_content (
@@ -179,8 +188,9 @@ async function initDb(): Promise<void> {
     "ALTER TABLE customers ADD COLUMN password TEXT NOT NULL DEFAULT ''",
     "ALTER TABLE rate_limits ADD COLUMN expires_at INTEGER NOT NULL DEFAULT 0",
   ]
+  const c = await ensureClient()
   for (const sql of safeMigrations) {
-    try { await getClient().execute(sql) } catch { /* column exists */ }
+    try { await c.execute(sql) } catch { /* column exists */ }
   }
 
   // Backfill empty order_uid values
@@ -324,14 +334,16 @@ async function migrateJsonData() {
 /** Run a SELECT query and return all matching rows */
 export async function query<T = Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T[]> {
   await initDb()
-  const result = await getClient().execute({ sql, args: params as InStatement["args"] })
+  const client = await ensureClient()
+  const result = await client.execute({ sql, args: params as DbArgs })
   return result.rows as unknown as T[]
 }
 
 /** Run an INSERT/UPDATE/DELETE and return affected info */
 export async function run(sql: string, params: unknown[] = []): Promise<{ rowsAffected: number; lastInsertRowid: bigint | number }> {
   await initDb()
-  const result = await getClient().execute({ sql, args: params as InStatement["args"] })
+  const client = await ensureClient()
+  const result = await client.execute({ sql, args: params as DbArgs })
   return {
     rowsAffected: result.rowsAffected,
     lastInsertRowid: result.lastInsertRowid ?? 0,
