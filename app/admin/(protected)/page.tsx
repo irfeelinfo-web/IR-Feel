@@ -41,8 +41,8 @@ async function getStats() {
     const allProducts = await getAllProducts()
     const allOrders = await getAllOrders()
     const allContacts = await getAllContacts()
-    const chatUnread = getUnreadChatCount()
-    const customerCount = getCustomerCount()
+    const chatUnread = await getUnreadChatCount()
+    const customerCount = await getCustomerCount()
 
     const pendingOrders = allOrders.filter((o) => o.status === "pending")
     const totalRevenue = allOrders

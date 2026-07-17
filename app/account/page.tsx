@@ -22,7 +22,7 @@ export default async function AccountPage() {
   
   // Fetch orders linked to this customer's phone
   const recentOrders = customer.phone && !customer.phone.startsWith("google_") 
-    ? getOrdersByPhone(customer.phone) 
+    ? await getOrdersByPhone(customer.phone) 
     : []
   
   return (
