@@ -1,52 +1,43 @@
 @echo off
 echo ============================================
-echo   IR-Feel - Vercel Deployment Script
+echo   IR-Feel - Git Push + Vercel Deploy
 echo ============================================
 echo.
 
 cd /d "d:\System Downloads\high-performance-website"
 
-echo [1/6] Initializing Git...
-git init
-if errorlevel 1 (echo ERROR: git init failed & pause & exit /b 1)
-
-echo.
-echo [2/6] Adding remote repository...
-git remote add origin https://github.com/irfeelinfo-web/IR-Feel.git 2>nul
-if errorlevel 1 (
-    echo Remote already exists, updating...
-    git remote set-url origin https://github.com/irfeelinfo-web/IR-Feel.git
-)
-
-echo.
-echo [3/6] Staging all files...
+echo [1/5] Staging updated files...
 git add .
 
 echo.
-echo [4/6] Creating first commit...
-git commit -m "Initial commit - IR-Feel e-commerce website"
+echo [2/5] Creating commit with fixes...
+git commit -m "Fix sitemap build error and update gitignore"
 
 echo.
-echo [5/6] Setting branch to main...
+echo [3/5] Setting branch to main...
 git branch -M main
 
 echo.
-echo [6/6] Pushing to GitHub...
-git push -u origin main
+echo [4/5] Pushing to GitHub...
+git push -u origin main --force
 
 echo.
 echo ============================================
 echo   GitHub push complete!
 echo ============================================
 echo.
-echo Now deploying to Vercel...
+echo [5/5] Now deploying to Vercel...
+echo.
+echo NOTE: If this is your first time, Vercel will 
+echo ask you to log in. Follow the prompts.
 echo.
 
-npx -y vercel --yes
+npx -y vercel --yes --prod
 
 echo.
 echo ============================================
-echo   DEPLOYMENT COMPLETE!
+echo   ALL DONE! Check your Vercel dashboard
+echo   for the live URL.
 echo ============================================
 echo.
 pause
