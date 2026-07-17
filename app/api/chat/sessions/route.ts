@@ -15,12 +15,12 @@ export async function GET(req: Request) {
   try {
     if (sessionId) {
       // Return messages for a specific session
-      const messages = getSessionMessages(sessionId)
+      const messages = await getSessionMessages(sessionId)
       return NextResponse.json({ messages })
     }
     // Return all sessions overview
-    const sessions = getAllChatSessions()
-    const unread = getUnreadChatCount()
+    const sessions = await getAllChatSessions()
+    const unread = await getUnreadChatCount()
     return NextResponse.json({ sessions, unread })
   } catch (err) {
     console.error("[api/chat/sessions GET]", (err as Error).message)

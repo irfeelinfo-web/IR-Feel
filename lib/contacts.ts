@@ -11,7 +11,7 @@ export type ContactMessage = {
   created_at: string
 }
 
-export function getAllContacts(): ContactMessage[] {
+export async function getAllContacts(): Promise<ContactMessage[]> {
   return query<ContactMessage>(
     `SELECT id, name, phone, email, subject, message, created_at 
      FROM contacts 

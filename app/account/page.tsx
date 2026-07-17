@@ -18,7 +18,7 @@ export default async function AccountPage() {
     redirect("/login")
   }
 
-  const settings = getSettings()
+  const settings = await getSettings()
   
   // Fetch orders linked to this customer's phone
   const recentOrders = customer.phone && !customer.phone.startsWith("google_") 

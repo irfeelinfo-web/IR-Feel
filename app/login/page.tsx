@@ -18,7 +18,7 @@ export default async function LoginPage() {
     redirect("/account")
   }
 
-  const settings = getSettings()
+  const settings = await getSettings()
 
   return (
     <>

@@ -50,19 +50,19 @@ export async function POST(request: Request) {
     const picture = (payload.picture as string) || ""
 
     // Find existing customer by google_id or email
-    let customer = getOne<{ id: number }>(
+    let customer = await getOne<{ id: number }>(
       "SELECT id FROM customers WHERE google_id = ?",
       [googleId],
     )
 
     if (!customer && email) {
-      customer = getOne<{ id: number }>(
+      customer = await getOne<{ id: number }>(
         "SELECT id FROM customers WHERE email = ? AND email != ''",
         [email],
       )
       // Link Google ID to existing customer
       if (customer) {
-        run(
+        await run(
           "UPDATE customers SET google_id = ?, avatar = CASE WHEN avatar = '' THEN ? ELSE avatar END, name = CASE WHEN name = '' THEN ? ELSE name END WHERE id = ?",
           [googleId, picture, name, customer.id],
         )
@@ -71,14 +71,14 @@ export async function POST(request: Request) {
 
     // Create new customer if not found
     if (!customer) {
-      const result = run(
+      const result = await run(
         `INSERT INTO customers (name, phone, email, google_id, avatar) VALUES (?, ?, ?, ?, ?)`,
         [name, `google_${googleId}`, email, googleId, picture],
       )
       customer = { id: Number(result.lastInsertRowid) }
     } else {
       // Update avatar if empty
-      run(
+      await run(
         "UPDATE customers SET avatar = CASE WHEN avatar = '' THEN ? ELSE avatar END WHERE id = ?",
         [picture, customer.id],
       )
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     await createCustomerSession(customer.id)
 
     // Fetch full customer data
-    const full = getOne<{
+    const full = await getOne<{
       id: number
       name: string
       phone: string

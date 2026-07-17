@@ -12,15 +12,16 @@ export type CustomerRow = {
   created_at: string
 }
 
-export function getAllCustomers(): CustomerRow[] {
+export async function getAllCustomers(): Promise<CustomerRow[]> {
   return query<CustomerRow>("SELECT * FROM customers ORDER BY created_at DESC")
 }
 
-export function getCustomerByPhone(phone: string): CustomerRow | undefined {
-  return query<CustomerRow>("SELECT * FROM customers WHERE phone = ?", [phone])[0]
+export async function getCustomerByPhone(phone: string): Promise<CustomerRow | undefined> {
+  const rows = await query<CustomerRow>("SELECT * FROM customers WHERE phone = ?", [phone])
+  return rows[0]
 }
 
-export function getCustomerCount(): number {
-  const row = query<{ c: number }>("SELECT COUNT(*) as c FROM customers")
+export async function getCustomerCount(): Promise<number> {
+  const row = await query<{ c: number }>("SELECT COUNT(*) as c FROM customers")
   return row[0]?.c ?? 0
 }

@@ -59,7 +59,7 @@ export async function buildMetadata(
   opts: BuildMetadataOptions = {},
 ): Promise<Metadata> {
   let settings: import("./site-config").SiteSettings | null = null
-  try { settings = getSettings() } catch { /* fallback to null */ }
+  try { settings = await getSettings() } catch { /* fallback to null */ }
   const brand = settings?.brandName?.trim() || BRAND_NAME
   const baseDescription =
     settings?.metaDescription?.trim() || BRAND_TAGLINE

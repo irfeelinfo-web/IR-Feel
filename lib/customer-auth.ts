@@ -20,9 +20,9 @@ export type CustomerSession = {
 export async function createCustomerSession(customerId: number): Promise<void> {
   const token = randomBytes(32).toString("hex")
   // Clean up old sessions for this customer (one active session per customer)
-  run("DELETE FROM customer_sessions WHERE customer_id = ?", [customerId])
+  await run("DELETE FROM customer_sessions WHERE customer_id = ?", [customerId])
   // Create new session
-  run("INSERT INTO customer_sessions (customer_id, token) VALUES (?, ?)", [customerId, token])
+  await run("INSERT INTO customer_sessions (customer_id, token) VALUES (?, ?)", [customerId, token])
 
   const store = await cookies()
   store.set(COOKIE_NAME, token, {
@@ -38,7 +38,7 @@ export async function destroyCustomerSession(): Promise<void> {
   const store = await cookies()
   const token = store.get(COOKIE_NAME)?.value
   if (token) {
-    run("DELETE FROM customer_sessions WHERE token = ?", [token])
+    await run("DELETE FROM customer_sessions WHERE token = ?", [token])
   }
   store.delete(COOKIE_NAME)
 }
@@ -49,7 +49,7 @@ export async function getLoggedInCustomer(): Promise<CustomerSession | null> {
     const token = store.get(COOKIE_NAME)?.value
     if (!token) return null
 
-    const row = getOne<CustomerSession>(
+    const row = await getOne<CustomerSession>(
       `SELECT c.id, c.name, c.phone, c.email, c.address, c.city, c.avatar, c.google_id, c.reward_points
        FROM customer_sessions s
        JOIN customers c ON c.id = s.customer_id

@@ -144,12 +144,18 @@ const fallbackProducts: AdminProduct[] = [
   },
 ]
 
+let isSeeded = false
+
 /** Seed fallback products into the database if it's empty */
-function ensureSeeded() {
-  const count = getOne<{ c: number }>("SELECT COUNT(*) as c FROM products")
-  if (count && count.c > 0) return
+async function ensureSeeded() {
+  if (isSeeded) return
+  const count = await getOne<{ c: number }>("SELECT COUNT(*) as c FROM products")
+  if (count && count.c > 0) {
+    isSeeded = true
+    return
+  }
   for (const p of fallbackProducts) {
-    run(
+    await run(
       `INSERT OR IGNORE INTO products (id, name, price, old_price, image, badge, category, colors, sizes, description, images, rating, reviews, in_stock, featured, new_arrival, sort_order)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
@@ -159,52 +165,52 @@ function ensureSeeded() {
       ],
     )
   }
+  isSeeded = true
 }
 
-// Run seed on module load
-ensureSeeded()
-
-export const getAllProducts = cache((): AdminProduct[] => {
-  const rows = query<ProductRow>("SELECT * FROM products ORDER BY sort_order ASC, created_at ASC")
+export const getAllProducts = cache(async (): Promise<AdminProduct[]> => {
+  await ensureSeeded()
+  const rows = await query<ProductRow>("SELECT * FROM products ORDER BY sort_order ASC, created_at ASC")
   return rows.map(rowToProduct)
 })
 
-export function getProductBySlug(id: string): AdminProduct | null {
-  const row = getOne<ProductRow>("SELECT * FROM products WHERE id = ?", [id])
+export async function getProductBySlug(id: string): Promise<AdminProduct | null> {
+  await ensureSeeded()
+  const row = await getOne<ProductRow>("SELECT * FROM products WHERE id = ?", [id])
   return row ? rowToProduct(row) : null
 }
 
-export function getFeaturedProducts(): AdminProduct[] {
-  const all = getAllProducts()
+export async function getFeaturedProducts(): Promise<AdminProduct[]> {
+  const all = await getAllProducts()
   const feat = all.filter((p) => p.featured)
   return (feat.length ? feat : all).slice(0, 8)
 }
 
-export function getNewArrivals(): AdminProduct[] {
-  const all = getAllProducts()
+export async function getNewArrivals(): Promise<AdminProduct[]> {
+  const all = await getAllProducts()
   const na = all.filter((p) => p.newArrival || p.badge === "NEW")
   return (na.length ? na : all).slice(0, 8)
 }
 
-export function getProductsByCategory(category: string): AdminProduct[] {
-  const all = getAllProducts()
+export async function getProductsByCategory(category: string): Promise<AdminProduct[]> {
+  const all = await getAllProducts()
   return all.filter((p) => (p.category ?? "").toLowerCase() === category.toLowerCase())
 }
 
-export function getDetailedProduct(id: string): DetailedProduct | null {
-  const product = getProductBySlug(id)
+export async function getDetailedProduct(id: string): Promise<DetailedProduct | null> {
+  const product = await getProductBySlug(id)
   return product ? withDetailDefaults(product) : null
 }
 
 /** All product ids — used for generateStaticParams. */
-export function getAllProductIds(): string[] {
-  const all = getAllProducts()
+export async function getAllProductIds(): Promise<string[]> {
+  const all = await getAllProducts()
   return all.map((p) => p.id)
 }
 
 /** Filter products for a collection based on its kind. */
-export function getCollectionProducts(collection: Collection): AdminProduct[] {
-  const all = getAllProducts()
+export async function getCollectionProducts(collection: Collection): Promise<AdminProduct[]> {
+  const all = await getAllProducts()
   switch (collection.kind) {
     case "new":
       return all.filter((p) => p.newArrival || p.badge === "NEW")
@@ -220,8 +226,8 @@ export function getCollectionProducts(collection: Collection): AdminProduct[] {
 }
 
 /** Related products for a detail page: same category first, then fill from the rest. */
-export function getRelatedProducts(currentId: string, category?: string): AdminProduct[] {
-  const all = getAllProducts()
+export async function getRelatedProducts(currentId: string, category?: string): Promise<AdminProduct[]> {
+  const all = await getAllProducts()
   const others = all.filter((p) => p.id !== currentId)
   const sameCat = category ? others.filter((p) => p.category === category) : []
   const rest = others.filter((p) => !sameCat.includes(p))

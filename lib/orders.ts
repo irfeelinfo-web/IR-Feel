@@ -5,8 +5,8 @@ import type { OrderRow } from "./order-types"
 export type { OrderItem, OrderStatus, OrderRow } from "./order-types"
 export { orderStatuses, statusLabels, paymentLabels } from "./order-types"
 
-export function getAllOrders(): OrderRow[] {
-  const rows = query<OrderRow & { items: string }>(
+export async function getAllOrders(): Promise<OrderRow[]> {
+  const rows = await query<OrderRow & { items: string }>(
     `SELECT id, order_uid, customer_name, phone, address, location, payment_method,
             transaction_id, items, subtotal, delivery_charge, total,
             status, created_at
@@ -18,8 +18,8 @@ export function getAllOrders(): OrderRow[] {
   }))
 }
 
-export function getOrdersByPhone(phone: string): OrderRow[] {
-  const rows = query<OrderRow & { items: string }>(
+export async function getOrdersByPhone(phone: string): Promise<OrderRow[]> {
+  const rows = await query<OrderRow & { items: string }>(
     `SELECT id, order_uid, customer_name, phone, address, location, payment_method,
             transaction_id, items, subtotal, delivery_charge, total,
             status, created_at

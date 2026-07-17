@@ -23,7 +23,7 @@ export type ChatSession = {
 }
 
 /** Get all messages for a specific session, ordered chronologically */
-export function getSessionMessages(sessionId: string): ChatMessage[] {
+export async function getSessionMessages(sessionId: string): Promise<ChatMessage[]> {
   return query<ChatMessage>(
     `SELECT id, session_id, sender_name, sender_phone, message, is_admin, is_read, created_at
      FROM chat_messages
@@ -34,7 +34,7 @@ export function getSessionMessages(sessionId: string): ChatMessage[] {
 }
 
 /** Get all chat sessions grouped, for admin panel */
-export function getAllChatSessions(): ChatSession[] {
+export async function getAllChatSessions(): Promise<ChatSession[]> {
   return query<ChatSession>(
     `SELECT
        session_id,
@@ -51,36 +51,36 @@ export function getAllChatSessions(): ChatSession[] {
 }
 
 /** Get total unread message count (visitor messages only) */
-export function getUnreadChatCount(): number {
-  const row = query<{ c: number }>(
+export async function getUnreadChatCount(): Promise<number> {
+  const row = await query<{ c: number }>(
     `SELECT COUNT(*) as c FROM chat_messages WHERE is_admin = 0 AND is_read = 0`,
   )
   return row[0]?.c ?? 0
 }
 
 /** Mark all visitor messages in a session as read */
-export function markSessionRead(sessionId: string): void {
-  run(
+export async function markSessionRead(sessionId: string): Promise<void> {
+  await run(
     `UPDATE chat_messages SET is_read = 1 WHERE session_id = ? AND is_admin = 0 AND is_read = 0`,
     [sessionId],
   )
 }
 
 /** Insert a new chat message */
-export function insertChatMessage(
+export async function insertChatMessage(
   sessionId: string,
   senderName: string,
   senderPhone: string,
   message: string,
   isAdmin: boolean,
-): ChatMessage {
-  run(
+): Promise<ChatMessage> {
+  await run(
     `INSERT INTO chat_messages (session_id, sender_name, sender_phone, message, is_admin)
      VALUES (?, ?, ?, ?, ?)`,
     [sessionId, senderName, senderPhone, message, isAdmin ? 1 : 0],
   )
   // Return the just-inserted row
-  const rows = query<ChatMessage>(
+  const rows = await query<ChatMessage>(
     `SELECT * FROM chat_messages WHERE session_id = ? ORDER BY id DESC LIMIT 1`,
     [sessionId],
   )
@@ -88,6 +88,6 @@ export function insertChatMessage(
 }
 
 /** Delete all messages for a session */
-export function deleteChatSession(sessionId: string): void {
-  run(`DELETE FROM chat_messages WHERE session_id = ?`, [sessionId])
+export async function deleteChatSession(sessionId: string): Promise<void> {
+  await run(`DELETE FROM chat_messages WHERE session_id = ?`, [sessionId])
 }

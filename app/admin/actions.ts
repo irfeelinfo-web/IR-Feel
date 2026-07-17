@@ -51,7 +51,7 @@ export async function logoutAction() {
 
 export async function saveSectionAction(section: SectionKey, data: unknown) {
   await requireAuth()
-  run(
+  await run(
     `INSERT INTO site_content (section, data, updated_at)
      VALUES (?, ?, datetime('now'))
      ON CONFLICT (section) DO UPDATE SET data = excluded.data, updated_at = datetime('now')`,
@@ -84,7 +84,7 @@ export type ProductInput = {
 export async function saveProductAction(input: ProductInput, _isNew: boolean) {
   await requireAuth()
   const p = input
-  run(
+  await run(
     `INSERT INTO products (id, name, price, old_price, image, badge, category, colors, sizes, description, images, rating, reviews, in_stock, featured, new_arrival, sort_order)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET
@@ -106,7 +106,7 @@ export async function saveProductAction(input: ProductInput, _isNew: boolean) {
 
 export async function deleteProductAction(id: string) {
   await requireAuth()
-  run("DELETE FROM products WHERE id = ?", [id])
+  await run("DELETE FROM products WHERE id = ?", [id])
   revalidateStorefront()
   return { ok: true }
 }
@@ -149,7 +149,7 @@ export async function createOrderAction(input: NewOrderInput) {
   }
   try {
     const uid = generateOrderUid()
-    run(
+    await run(
       `INSERT INTO orders (order_uid, customer_name, phone, address, location, payment_method, transaction_id, items, subtotal, delivery_charge, total, status)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')`,
       [
@@ -169,7 +169,7 @@ export async function createOrderAction(input: NewOrderInput) {
 
 export async function updateOrderStatusAction(id: number, status: string) {
   await requireAuth()
-  run("UPDATE orders SET status = ? WHERE id = ?", [status, id])
+  await run("UPDATE orders SET status = ? WHERE id = ?", [status, id])
   revalidatePath("/admin/orders")
   revalidatePath("/admin", "layout")
   return { ok: true }
@@ -177,7 +177,7 @@ export async function updateOrderStatusAction(id: number, status: string) {
 
 export async function deleteOrderAction(id: number) {
   await requireAuth()
-  run("DELETE FROM orders WHERE id = ?", [id])
+  await run("DELETE FROM orders WHERE id = ?", [id])
   revalidatePath("/admin/orders")
   revalidatePath("/admin", "layout")
   return { ok: true }
@@ -200,7 +200,7 @@ export async function submitContactAction(input: {
     return { ok: false as const, error: "প্রয়োজনীয় তথ্য পূরণ করুন।" }
   }
   try {
-    run(
+    await run(
       `INSERT INTO contacts (name, phone, email, subject, message) VALUES (?, ?, ?, ?, ?)`,
       [input.name, input.phone, input.email || "", input.subject, input.message],
     )
@@ -222,14 +222,14 @@ export async function subscribeNewsletterAction(email: string) {
     return { ok: false as const, error: "সঠিক ইমেইল দিন।" }
   }
   try {
-    const existing = getOne<{ email: string }>(
+    const existing = await getOne<{ email: string }>(
       "SELECT email FROM newsletter WHERE email = ? COLLATE NOCASE",
       [email],
     )
     if (existing) {
       return { ok: true as const, message: "আপনি ইতোমধ্যে সাবস্ক্রাইব করেছেন!" }
     }
-    run("INSERT INTO newsletter (email) VALUES (?)", [email])
+    await run("INSERT INTO newsletter (email) VALUES (?)", [email])
     return { ok: true as const, message: "সফলভাবে সাবস্ক্রাইব হয়েছে!" }
   } catch (err) {
     console.error("[newsletter] write failed:", (err as Error).message)
@@ -240,7 +240,7 @@ export async function subscribeNewsletterAction(email: string) {
 export async function deleteContactAction(id: number) {
   await requireAuth()
   try {
-    run("DELETE FROM contacts WHERE id = ?", [id])
+    await run("DELETE FROM contacts WHERE id = ?", [id])
     revalidatePath("/admin/contacts")
     revalidatePath("/admin", "layout")
     return { ok: true as const }
@@ -269,7 +269,7 @@ export async function sendChatMessageAction(input: {
     return { ok: false as const, error: "প্রয়োজনীয় তথ্য পূরণ করুন।" }
   }
   try {
-    const msg = insertChatMessage(input.sessionId, input.name, input.phone || "", input.message, false)
+    const msg = await insertChatMessage(input.sessionId, input.name, input.phone || "", input.message, false)
     revalidatePath("/admin/messages")
     revalidatePath("/admin", "layout")
     return { ok: true as const, message: msg }
@@ -284,7 +284,7 @@ export async function adminReplyAction(sessionId: string, message: string) {
   await requireAuth()
   if (!sessionId || !message) return { ok: false as const, error: "মেসেজ লিখুন।" }
   try {
-    const msg = insertChatMessage(sessionId, "Admin", "", message, true)
+    const msg = await insertChatMessage(sessionId, "Admin", "", message, true)
     revalidatePath("/admin/messages")
     return { ok: true as const, message: msg }
   } catch (err) {
@@ -297,7 +297,7 @@ export async function adminReplyAction(sessionId: string, message: string) {
 export async function deleteChatSessionAction(sessionId: string) {
   await requireAuth()
   try {
-    dbDeleteChatSession(sessionId)
+    await dbDeleteChatSession(sessionId)
     revalidatePath("/admin/messages")
     revalidatePath("/admin", "layout")
     return { ok: true as const }
@@ -311,7 +311,7 @@ export async function deleteChatSessionAction(sessionId: string) {
 export async function markChatReadAction(sessionId: string) {
   await requireAuth()
   try {
-    markSessionRead(sessionId)
+    await markSessionRead(sessionId)
     revalidatePath("/admin/messages")
     revalidatePath("/admin", "layout")
     return { ok: true as const }
@@ -378,21 +378,21 @@ export async function registerCustomerAction(input: {
 
   try {
     // Check if phone already exists
-    const existing = getOne<{ id: number; password: string }>(
+    const existing = await getOne<{ id: number; password: string }>(
       "SELECT id, password FROM customers WHERE phone = ?",
       [phone],
     )
     if (existing) {
       if (!existing.password) {
         // Upgrade account with password
-        run("UPDATE customers SET password = ? WHERE id = ?", [hashPassword(input.password), existing.id])
+        await run("UPDATE customers SET password = ? WHERE id = ?", [hashPassword(input.password), existing.id])
         await createCustomerSession(existing.id)
         return { ok: true as const, customerId: existing.id }
       }
       return { ok: false as const, error: "এই ফোন নম্বরে ইতিমধ্যে একটি অ্যাকাউন্ট আছে। অনুগ্রহ করে লগইন করুন।" }
     }
 
-    const result = run(
+    const result = await run(
       `INSERT INTO customers (name, phone, email, password, address, city) VALUES (?, ?, ?, ?, '', '')`,
       [input.name.trim(), phone, input.email?.trim() || "", hashPassword(input.password)],
     )
@@ -402,7 +402,7 @@ export async function registerCustomerAction(input: {
     await createCustomerSession(customerId)
 
     // Return full customer data so client doesn't need an extra /api/auth/me call
-    const full = getOne<{ id: number; name: string; phone: string; email: string; address: string; city: string; avatar: string; google_id: string | null }>(
+    const full = await getOne<{ id: number; name: string; phone: string; email: string; address: string; city: string; avatar: string; google_id: string | null }>(
       "SELECT id, name, phone, email, address, city, COALESCE(avatar, '') as avatar, google_id FROM customers WHERE id = ?",
       [customerId]
     )
@@ -448,7 +448,7 @@ export async function customerLoginAction(credential: string, password?: string)
       ? "SELECT id, password FROM customers WHERE email = ?"
       : "SELECT id, password FROM customers WHERE phone = ?"
       
-    const customer = getOne<{ id: number; password: string }>(query, [normalized])
+    const customer = await getOne<{ id: number; password: string }>(query, [normalized])
 
     if (!customer) {
       return { ok: false as const, error: isEmail ? "এই ইমেইলে কোনো অ্যাকাউন্ট নেই। প্রথমে রেজিস্টার করুন।" : "এই ফোন নম্বরে কোনো অ্যাকাউন্ট নেই। প্রথমে রেজিস্টার করুন।" }
@@ -459,13 +459,13 @@ export async function customerLoginAction(credential: string, password?: string)
     } else if (!customer.password) {
        // Auto-upgrade password for legacy users upon first successful identification attempt? No, that's unsafe.
        // Without OTP we can't securely upgrade. But for demo purposes, we will accept the password and save it.
-       run("UPDATE customers SET password = ? WHERE id = ?", [hashPassword(password), customer.id])
+       await run("UPDATE customers SET password = ? WHERE id = ?", [hashPassword(password), customer.id])
     }
 
     await createCustomerSession(customer.id)
 
     // Return full customer data so client doesn't need an extra /api/auth/me call
-    const full = getOne<{ id: number; name: string; phone: string; email: string; address: string; city: string; avatar: string; google_id: string | null }>(
+    const full = await getOne<{ id: number; name: string; phone: string; email: string; address: string; city: string; avatar: string; google_id: string | null }>(
       "SELECT id, name, phone, email, address, city, COALESCE(avatar, '') as avatar, google_id FROM customers WHERE id = ?",
       [customer.id]
     )
@@ -498,7 +498,7 @@ export async function updateCustomerProfileAction(
   const city = input.city?.trim() || ""
 
   try {
-    const customer = getOne<{ phone: string; email: string }>(
+    const customer = await getOne<{ phone: string; email: string }>(
       "SELECT phone, email FROM customers WHERE id = ?", [customerId]
     )
     if (!customer) return { ok: false as const, error: "কাস্টমার পাওয়া যায়নি।" }
@@ -521,17 +521,17 @@ export async function updateCustomerProfileAction(
         return { ok: false as const, error: "সঠিক ১১ ডিজিটের বাংলাদেশী মোবাইল নম্বর দিন (যেমন: 017XXXXXXXX)।" }
       }
       
-      const existing = getOne<{ id: number }>("SELECT id FROM customers WHERE phone = ?", [normalized])
+      const existing = await getOne<{ id: number }>("SELECT id FROM customers WHERE phone = ?", [normalized])
       if (existing && existing.id !== customerId) {
         return { ok: false as const, error: "এই মোবাইল নম্বরটি ইতিমধ্যে অন্য অ্যাকাউন্টে ব্যবহৃত হচ্ছে।" }
       }
 
-      run(
+      await run(
         `UPDATE customers SET name = ?, email = ?, phone = ?, address = ?, city = ? WHERE id = ?`,
         [input.name.trim(), emailToSave, normalized, address, city, customerId],
       )
     } else {
-      run(
+      await run(
         `UPDATE customers SET name = ?, email = ?, address = ?, city = ? WHERE id = ?`,
         [input.name.trim(), emailToSave, address, city, customerId],
       )
@@ -556,7 +556,7 @@ export async function logoutCustomerAction() {
 export async function deleteCustomerAction(id: number) {
   await requireAuth()
   try {
-    run("DELETE FROM customers WHERE id = ?", [id])
+    await run("DELETE FROM customers WHERE id = ?", [id])
     revalidatePath("/admin/customers")
     revalidatePath("/admin", "layout")
     return { ok: true as const }
@@ -608,20 +608,20 @@ export async function submitChangeRequestAction(
 
   try {
     // Check customer exists
-    const customer = getOne<{ id: number; phone: string; email: string }>(
+    const customer = await getOne<{ id: number; phone: string; email: string }>(
       "SELECT id, phone, email FROM customers WHERE id = ?",
       [customerId]
     )
     if (!customer) return { ok: false as const, error: "কাস্টমার পাওয়া যায়নি।" }
 
     // Check for existing pending request
-    if (hasPendingRequest(customerId, fieldType)) {
+    if (await hasPendingRequest(customerId, fieldType)) {
       return { ok: false as const, error: `আপনার একটি ${fieldType === "phone" ? "মোবাইল" : "ইমেইল"} পরিবর্তন রিকোয়েস্ট ইতিমধ্যে অপেক্ষমাণ আছে।` }
     }
 
     const currentValue = fieldType === "phone" ? customer.phone : customer.email
 
-    run(
+    await run(
       `INSERT INTO profile_change_requests (customer_id, field_type, current_value, new_value) VALUES (?, ?, ?, ?)`,
       [customerId, fieldType, currentValue, trimmed]
     )
@@ -639,24 +639,24 @@ export async function submitChangeRequestAction(
 export async function approveChangeRequestAction(requestId: number) {
   await requireAuth()
   try {
-    const req = getChangeRequestById(requestId)
+    const req = await getChangeRequestById(requestId)
     if (!req) return { ok: false as const, error: "রিকোয়েস্ট পাওয়া যায়নি।" }
     if (req.status !== "pending") return { ok: false as const, error: "রিকোয়েস্টটি ইতিমধ্যে প্রক্রিয়াকৃত হয়েছে।" }
 
     // If phone change, check uniqueness
     if (req.field_type === "phone") {
       const normalized = req.new_value.replace(/[\s-]/g, "")
-      const existing = getOne<{ id: number }>("SELECT id FROM customers WHERE phone = ?", [normalized])
+      const existing = await getOne<{ id: number }>("SELECT id FROM customers WHERE phone = ?", [normalized])
       if (existing && existing.id !== req.customer_id) {
         return { ok: false as const, error: "এই মোবাইল নম্বরটি ইতিমধ্যে অন্য অ্যাকাউন্টে ব্যবহৃত হচ্ছে।" }
       }
-      run(`UPDATE customers SET phone = ? WHERE id = ?`, [normalized, req.customer_id])
+      await run(`UPDATE customers SET phone = ? WHERE id = ?`, [normalized, req.customer_id])
     } else {
-      run(`UPDATE customers SET email = ? WHERE id = ?`, [req.new_value, req.customer_id])
+      await run(`UPDATE customers SET email = ? WHERE id = ?`, [req.new_value, req.customer_id])
     }
 
     // Mark request as approved
-    run(
+    await run(
       `UPDATE profile_change_requests SET status = 'approved', updated_at = datetime('now') WHERE id = ?`,
       [requestId]
     )
@@ -675,11 +675,11 @@ export async function approveChangeRequestAction(requestId: number) {
 export async function rejectChangeRequestAction(requestId: number, note?: string) {
   await requireAuth()
   try {
-    const req = getChangeRequestById(requestId)
+    const req = await getChangeRequestById(requestId)
     if (!req) return { ok: false as const, error: "রিকোয়েস্ট পাওয়া যায়নি।" }
     if (req.status !== "pending") return { ok: false as const, error: "রিকোয়েস্টটি ইতিমধ্যে প্রক্রিয়াকৃত হয়েছে।" }
 
-    run(
+    await run(
       `UPDATE profile_change_requests SET status = 'rejected', admin_note = ?, updated_at = datetime('now') WHERE id = ?`,
       [note?.trim() || "", requestId]
     )
@@ -701,7 +701,7 @@ export async function updateCustomerRewardsAction(customerId: number, points: nu
       return { ok: false as const, error: "সঠিক পয়েন্ট দিন।" }
     }
     
-    run(
+    await run(
       `UPDATE customers SET reward_points = ? WHERE id = ?`,
       [points, customerId]
     )

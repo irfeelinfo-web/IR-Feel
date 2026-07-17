@@ -30,7 +30,7 @@ export async function trackOrderAction(orderId: string, phone: string) {
 
   try {
     // Fetch all orders matching this UID then filter by phone
-    const order = getOne<any>(
+    const order = await getOne<any>(
       `SELECT id, order_uid, customer_name, phone, address, status, items, subtotal, delivery_charge, total, created_at 
        FROM orders 
        WHERE order_uid = ?`,

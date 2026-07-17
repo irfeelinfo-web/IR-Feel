@@ -29,7 +29,6 @@ const nextConfig = {
     // If you want to test on mobile, add your local IP here (e.g. '192.168.0.x')
     allowedDevOrigins: ['localhost'],
   }),
-  serverExternalPackages: ['better-sqlite3'],
 }
 
 export default nextConfig

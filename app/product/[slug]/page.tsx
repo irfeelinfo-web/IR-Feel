@@ -30,8 +30,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 }
 
 export async function generateStaticParams() {
-  const ids = getAllProductIds()
-  return ids.map((id) => ({ slug: id }))
+  const ids = await getAllProductIds()
+  return ids.map((slug) => ({ slug }))
 }
 
 export default async function ProductPage({

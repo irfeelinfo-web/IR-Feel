@@ -20,7 +20,7 @@ export type ChangeRequestWithCustomer = ChangeRequestRow & {
 }
 
 /** Get all change requests with customer info (for admin) */
-export function getAllChangeRequests(status?: string): ChangeRequestWithCustomer[] {
+export async function getAllChangeRequests(status?: string): Promise<ChangeRequestWithCustomer[]> {
   let sql = `
     SELECT r.*, c.name as customer_name, c.phone as customer_phone, c.email as customer_email
     FROM profile_change_requests r
@@ -36,15 +36,15 @@ export function getAllChangeRequests(status?: string): ChangeRequestWithCustomer
 }
 
 /** Count pending change requests */
-export function getPendingChangeRequestCount(): number {
-  const row = getOne<{ c: number }>(
+export async function getPendingChangeRequestCount(): Promise<number> {
+  const row = await getOne<{ c: number }>(
     "SELECT COUNT(*) as c FROM profile_change_requests WHERE status = 'pending'"
   )
   return row?.c ?? 0
 }
 
 /** Get change requests for a specific customer */
-export function getChangeRequestsByCustomer(customerId: number): ChangeRequestRow[] {
+export async function getChangeRequestsByCustomer(customerId: number): Promise<ChangeRequestRow[]> {
   return query<ChangeRequestRow>(
     "SELECT * FROM profile_change_requests WHERE customer_id = ? ORDER BY created_at DESC",
     [customerId]
@@ -52,8 +52,8 @@ export function getChangeRequestsByCustomer(customerId: number): ChangeRequestRo
 }
 
 /** Check if customer already has a pending request for this field */
-export function hasPendingRequest(customerId: number, fieldType: string): boolean {
-  const row = getOne<{ c: number }>(
+export async function hasPendingRequest(customerId: number, fieldType: string): Promise<boolean> {
+  const row = await getOne<{ c: number }>(
     "SELECT COUNT(*) as c FROM profile_change_requests WHERE customer_id = ? AND field_type = ? AND status = 'pending'",
     [customerId, fieldType]
   )
@@ -61,8 +61,8 @@ export function hasPendingRequest(customerId: number, fieldType: string): boolea
 }
 
 /** Get a single change request by ID */
-export function getChangeRequestById(id: number): ChangeRequestWithCustomer | undefined {
-  return getOne<ChangeRequestWithCustomer>(
+export async function getChangeRequestById(id: number): Promise<ChangeRequestWithCustomer | undefined> {
+  return await getOne<ChangeRequestWithCustomer>(
     `SELECT r.*, c.name as customer_name, c.phone as customer_phone, c.email as customer_email
      FROM profile_change_requests r
      JOIN customers c ON c.id = r.customer_id

@@ -21,9 +21,9 @@ import {
 
 export type SectionKey = "settings" | "announcement" | "header" | "footer" | "home" | "pages" | "payment"
 
-function readSection<T>(key: SectionKey, defaults: T): T {
+async function readSection<T>(key: SectionKey, defaults: T): Promise<T> {
   try {
-    const row = getOne<{ data: string }>(
+    const row = await getOne<{ data: string }>(
       "SELECT data FROM site_content WHERE section = ?",
       [key],
     )
@@ -34,18 +34,18 @@ function readSection<T>(key: SectionKey, defaults: T): T {
   return defaults
 }
 
-export const getSettings = cache((): SiteSettings => readSection("settings", defaultSettings))
-export const getAnnouncement = cache((): AnnouncementConfig =>
+export const getSettings = cache((): Promise<SiteSettings> => readSection("settings", defaultSettings))
+export const getAnnouncement = cache((): Promise<AnnouncementConfig> =>
   readSection("announcement", defaultAnnouncement),
 )
-export const getHeader = cache((): HeaderConfig => readSection("header", defaultHeader))
-export const getFooter = cache((): FooterConfig => readSection("footer", defaultFooter))
-export const getHome = cache((): HomeConfig => readSection("home", defaultHome))
-export const getPages = cache((): PagesConfig => readSection("pages", defaultPages))
-export const getPayment = cache((): PaymentConfig => readSection("payment", defaultPayment))
+export const getHeader = cache((): Promise<HeaderConfig> => readSection("header", defaultHeader))
+export const getFooter = cache((): Promise<FooterConfig> => readSection("footer", defaultFooter))
+export const getHome = cache((): Promise<HomeConfig> => readSection("home", defaultHome))
+export const getPages = cache((): Promise<PagesConfig> => readSection("pages", defaultPages))
+export const getPayment = cache((): Promise<PaymentConfig> => readSection("payment", defaultPayment))
 
 /** Read any section's raw stored data merged with its defaults — used by the admin editors. */
-export function getSectionData(key: SectionKey): any {
+export async function getSectionData(key: SectionKey): Promise<any> {
   switch (key) {
     case "settings":
       return getSettings()

@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "sessionId required" }, { status: 400 })
   }
   try {
-    const messages = getSessionMessages(sessionId)
+    const messages = await getSessionMessages(sessionId)
     return NextResponse.json({ messages })
   } catch (err) {
     console.error("[api/chat GET]", (err as Error).message)
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
     if (!sessionId || !name || !message) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 })
     }
-    const msg = insertChatMessage(sessionId, name, phone || "", message, false)
+    const msg = await insertChatMessage(sessionId, name, phone || "", message, false)
     return NextResponse.json({ ok: true, message: msg })
   } catch (err) {
     console.error("[api/chat POST]", (err as Error).message)
