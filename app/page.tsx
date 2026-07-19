@@ -9,6 +9,8 @@ import { NewArrivals } from "@/components/home/new-arrivals"
 import { CustomerReviews } from "@/components/home/customer-reviews"
 import { getHome } from "@/lib/content"
 
+export const dynamic = "force-dynamic"
+
 export default async function HomePage() {
   const home = await getHome()
   return (
