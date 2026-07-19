@@ -1,5 +1,5 @@
 import "server-only"
-import { createClient, type Client, type InStatement } from "@libsql/client"
+import { type Client, type InStatement } from "@libsql/client"
 import { existsSync, readFileSync, renameSync, mkdirSync } from "fs"
 import { join } from "path"
 import { randomBytes } from "crypto"
@@ -15,13 +15,19 @@ function getClient(): Client {
   let client: Client
 
   if (isProduction) {
-    // Production: connect to remote Turso database
+    // Production: connect to remote Turso database using WEB client.
+    // This uses pure JS HTTP and completely avoids Next.js build-time worker thread deadlocks 
+    // and Vercel Turbopack/native module missing errors that occur with the node client.
+    // @ts-ignore
+    const { createClient } = require("@libsql/client/web")
     client = createClient({
       url: process.env.TURSO_DATABASE_URL!,
       authToken: process.env.TURSO_AUTH_TOKEN,
     })
   } else {
-    // Development: use local SQLite file
+    // Development: use local SQLite file using NODE client
+    // @ts-ignore
+    const { createClient } = require("@libsql/client")
     const dataDir = join(process.cwd(), ".data")
     if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true })
     client = createClient({
