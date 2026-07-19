@@ -34,7 +34,7 @@ export const shopSizes = ["S", "M", "L", "XL", "XXL"]
 
 /** Format a number as Bangladeshi Taka. */
 export function bdt(n: number) {
-  return "৳ " + n.toLocaleString("en-US")
+  return "৳ " + n.toLocaleString("en-IN")
 }
 
 export const defaultDescription =
@@ -58,7 +58,7 @@ export function withDetailDefaults(product: Product): DetailedProduct {
     description: product.description ?? defaultDescription,
     images: validImages.length > 0 ? validImages : (product.image ? [product.image] : []),
     rating: product.rating ?? 5,
-    reviews: product.reviews ?? 42,
+    reviews: product.reviews ?? 0,
     colors: product.colors && product.colors.length > 0 ? product.colors : ["Black"],
     sizes: product.sizes && product.sizes.length > 0 ? product.sizes : ["S", "M", "L", "XL"],
   }

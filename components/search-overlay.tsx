@@ -129,7 +129,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
               ref={inputRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search products, categories..."
+              placeholder="পণ্য, ক্যাটাগরি খুঁজুন..."
               className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground sm:text-lg"
               autoComplete="off"
               enterKeyHint="search"
@@ -151,7 +151,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
             {query.trim().length < 2 && (
               <div className="px-4 py-6 sm:px-6">
                 <p className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                  <TrendingUp className="h-3.5 w-3.5" /> Popular searches
+                  <TrendingUp className="h-3.5 w-3.5" /> জনপ্রিয় সার্চ
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {POPULAR.map((term) => (
@@ -206,7 +206,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                     onClick={() => goToShop(query)}
                     className="flex w-full items-center justify-center gap-2 px-4 py-4 text-sm font-medium text-foreground transition-colors hover:bg-muted/50"
                   >
-                    View all results for &ldquo;{query.trim()}&rdquo;
+                    &ldquo;{query.trim()}&rdquo; এর সব ফলাফল দেখুন
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 </li>
@@ -217,17 +217,17 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
             {query.trim().length >= 2 && !loading && searched && results.length === 0 && (
               <div className="px-6 py-12 text-center">
                 <p className="text-sm font-medium text-foreground">
-                  No products found for &ldquo;{query.trim()}&rdquo;
+                  &ldquo;{query.trim()}&rdquo; এর জন্য কোনো পণ্য পাওয়া যায়নি
                 </p>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Try a different keyword or browse the full shop.
+                   ভিন্ন কীওয়ার্ড ব্যবহার করুন অথবা সম্পূর্ণ শপ ব্রাউজ করুন।
                 </p>
                 <Link
                   href="/shop"
                   onClick={onClose}
                   className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
                 >
-                  Browse all products
+                   সব পণ্য দেখুন
                 </Link>
               </div>
             )}

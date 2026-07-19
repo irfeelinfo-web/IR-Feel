@@ -89,7 +89,7 @@ export default async function ProductPage({
       url: absoluteUrl(`/product/${slug}`),
       priceCurrency: "BDT",
       price: product.price,
-      availability: "https://schema.org/InStock",
+      availability: product.inStock !== false ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       seller: { "@type": "Organization", name: BRAND_NAME },
     },
   }
@@ -154,7 +154,7 @@ export default async function ProductPage({
           </div>
         </section>
 
-        <ProductTabs description={product.description} />
+        <ProductTabs product={product} />
         <RelatedProducts products={related} currentId={product.id} />
       </main>
       <SiteFooter />

@@ -75,25 +75,35 @@ export function Hero({ slides }: { slides: HeroSlide[] }) {
 
       <div className="relative mx-auto flex min-h-[360px] max-w-[1280px] items-end px-4 pb-14 pt-24 sm:min-h-[420px] sm:items-center sm:px-6 sm:py-16 md:min-h-[520px] lg:min-h-[560px] z-20">
         {/* Render text with key based on slide index so standard CSS transition runs on change */}
-        <div key={index} className="w-full max-w-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <p className="text-[10px] font-medium tracking-[0.25em] text-primary-foreground/70 sm:text-xs">
-            {slide.label}
-          </p>
-          <h1 className="mt-3 font-display text-3xl font-extrabold leading-[0.95] tracking-tight sm:mt-4 sm:text-5xl md:text-6xl lg:text-7xl">
-            {slide.titleLine1}
-            <br />
-            {slide.titleLine2}
-            <span className="text-gold">{slide.accent}</span>
-          </h1>
-          <p className="mt-4 max-w-sm text-xs leading-relaxed text-primary-foreground/70 sm:mt-6 sm:text-sm">
-            {slide.subtitle}
-          </p>
-          <Link
-            href={slide.buttonHref || "/shop"}
-            className="mt-5 inline-flex items-center rounded-full bg-white px-6 py-3 text-[10px] font-semibold tracking-widest text-primary transition-all hover:bg-gold hover:text-white sm:mt-8 sm:px-8 sm:py-3.5 sm:text-xs"
-          >
-            {slide.buttonText || "SHOP NOW"}
-          </Link>
+        <div key={index} className="w-full max-w-xl animate-in fade-in slide-in-from-bottom-8 duration-700 ease-out">
+          <div className="rounded-2xl bg-black/20 p-6 backdrop-blur-md border border-white/10 shadow-2xl sm:p-10 sm:rounded-3xl relative overflow-hidden">
+            {/* Subtle inner glow */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+            
+            <p className="relative text-[10px] font-bold uppercase tracking-[0.3em] text-white/90 sm:text-xs">
+              {slide.label}
+            </p>
+            <h1 className="relative mt-4 font-display text-4xl font-light leading-[1.1] tracking-wide text-white sm:mt-5 sm:text-5xl md:text-6xl drop-shadow-md">
+              {slide.titleLine1}
+              <br />
+              <span className="font-semibold">{slide.titleLine2}</span>{" "}
+              <span className="text-gold font-bold italic tracking-normal">{slide.accent}</span>
+            </h1>
+            <p className="relative mt-5 max-w-sm text-sm leading-relaxed text-white/80 sm:mt-6 sm:text-base font-light">
+              {slide.subtitle}
+            </p>
+            <Link
+              href={slide.buttonHref || "/shop"}
+              className="group relative mt-8 inline-flex items-center gap-4 rounded-full bg-white pr-2 pl-8 py-2 text-xs font-bold tracking-[0.15em] text-black transition-all hover:bg-black hover:text-white shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
+            >
+              <span>{slide.buttonText || "SHOP NOW"}</span>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black text-white transition-transform group-hover:rotate-45 group-hover:bg-white group-hover:text-black">
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4">
+                  <path d="M8.14645 3.14645C8.34171 2.95118 8.65829 2.95118 8.85355 3.14645L12.8536 7.14645C13.0488 7.34171 13.0488 7.65829 12.8536 7.85355L8.85355 11.8536C8.65829 12.0488 8.34171 12.0488 8.14645 11.8536C7.95118 11.6583 7.95118 11.3417 8.14645 11.1464L11.2929 8H2.5C2.22386 8 2 7.77614 2 7.5C2 7.22386 2.22386 7 2.5 7H11.2929L8.14645 3.85355C7.95118 3.65829 7.95118 3.34171 8.14645 3.14645Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path>
+                </svg>
+              </div>
+            </Link>
+          </div>
         </div>
       </div>
 

@@ -62,6 +62,9 @@ export function SiteFooterClient({
                   type="email"
                   name="email"
                   required
+                  maxLength={150}
+                  pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$"
+                  title="Please enter a valid email address (e.g., name@example.com)"
                   placeholder="আপনার ইমেইল দিন"
                   aria-label="Email address"
                   className="h-11 w-full border border-white/15 bg-transparent px-4 text-base text-footer-foreground placeholder:text-footer-foreground/40 focus:border-white/40 focus:outline-none"

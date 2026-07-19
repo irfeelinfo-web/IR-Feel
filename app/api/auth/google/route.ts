@@ -2,14 +2,18 @@ import { NextResponse } from "next/server"
 import { run, getOne } from "@/lib/db"
 import { createCustomerSession } from "@/lib/customer-auth"
 
-/** Decode Google ID token locally — no external network call */
-function decodeGoogleJWT(token: string): Record<string, unknown> {
-  const parts = token.split(".")
-  if (parts.length !== 3) throw new Error("Invalid JWT format")
-  // base64url → base64 → Buffer → JSON
-  const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/")
-  const json = Buffer.from(base64, "base64").toString("utf8")
-  return JSON.parse(json)
+/**
+ * Decode AND verify Google ID token.
+ * Fix #2: We now verify the token signature by calling Google's tokeninfo endpoint
+ * instead of blindly trusting the JWT payload.
+ */
+async function verifyGoogleToken(token: string): Promise<Record<string, unknown>> {
+  // Use Google's tokeninfo endpoint to verify signature + claims
+  const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(token)}`)
+  if (!res.ok) {
+    throw new Error("Google token verification failed")
+  }
+  return await res.json()
 }
 
 export async function POST(request: Request) {
@@ -24,10 +28,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Google sign-in not configured" }, { status: 500 })
     }
 
-    // Decode the Google ID token locally (no external API call = much faster)
+    // Verify the Google ID token via Google's endpoint (signature + claims)
     let payload: Record<string, unknown>
     try {
-      payload = decodeGoogleJWT(credential)
+      payload = await verifyGoogleToken(credential)
     } catch {
       return NextResponse.json({ error: "Invalid Google token" }, { status: 401 })
     }
@@ -39,7 +43,8 @@ export async function POST(request: Request) {
     if (payload.iss !== "accounts.google.com" && payload.iss !== "https://accounts.google.com") {
       return NextResponse.json({ error: "Invalid token issuer" }, { status: 401 })
     }
-    const exp = typeof payload.exp === "number" ? payload.exp : 0
+    const exp = typeof payload.exp === "number" ? payload.exp
+      : typeof payload.exp === "string" ? parseInt(payload.exp, 10) : 0
     if (Date.now() / 1000 > exp) {
       return NextResponse.json({ error: "Token expired" }, { status: 401 })
     }
@@ -69,11 +74,13 @@ export async function POST(request: Request) {
       }
     }
 
-    // Create new customer if not found
+    // Fix: Use unique placeholder phone to avoid UNIQUE constraint violation
+    // when multiple Google users sign up without providing a phone number.
     if (!customer) {
+      const placeholderPhone = `google_${googleId}`
       const result = await run(
         `INSERT INTO customers (name, phone, email, google_id, avatar) VALUES (?, ?, ?, ?, ?)`,
-        [name, `google_${googleId}`, email, googleId, picture],
+        [name, placeholderPhone, email, googleId, picture],
       )
       customer = { id: Number(result.lastInsertRowid) }
     } else {
@@ -106,4 +113,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Authentication failed" }, { status: 500 })
   }
 }
-

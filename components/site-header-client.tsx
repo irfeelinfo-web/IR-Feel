@@ -186,8 +186,7 @@ export function SiteHeaderClient({
             >
               {customer?.avatar ? (
                 <span className="relative flex h-7 w-7 overflow-hidden rounded-full ring-2 ring-border">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={customer.avatar} alt={customer.name} className="h-full w-full object-cover" />
+                  <Image src={customer.avatar} alt={customer.name} fill sizes="28px" className="object-cover" />
                 </span>
               ) : customer ? (
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-foreground text-[10px] font-bold text-background ring-2 ring-border">
@@ -273,9 +272,8 @@ export function SiteHeaderClient({
                 >
                   <span className="flex items-center gap-2">
                     {customer?.avatar ? (
-                      <span className="flex h-5 w-5 overflow-hidden rounded-full ring-1 ring-border">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={customer.avatar} alt="" className="h-full w-full object-cover" />
+                      <span className="relative flex h-5 w-5 overflow-hidden rounded-full ring-1 ring-border">
+                        <Image src={customer.avatar} alt="" fill sizes="20px" className="object-cover" />
                       </span>
                     ) : customer ? (
                       <span className="flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-[8px] font-bold text-background">

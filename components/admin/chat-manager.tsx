@@ -32,7 +32,7 @@ type Message = {
 
 function formatTime(iso: string) {
   try {
-    const d = new Date(iso + "Z")
+    const d = new Date(iso.replace(" ", "T") + "Z")
     return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })
   } catch {
     return ""
@@ -41,7 +41,7 @@ function formatTime(iso: string) {
 
 function formatDate(iso: string) {
   try {
-    return new Date(iso + "Z").toLocaleDateString("en-GB", {
+    return new Date(iso.replace(" ", "T") + "Z").toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -54,7 +54,7 @@ function formatDate(iso: string) {
 function timeAgo(iso: string) {
   try {
     const now = Date.now()
-    const then = new Date(iso + "Z").getTime()
+    const then = new Date(iso.replace(" ", "T") + "Z").getTime()
     const diff = Math.floor((now - then) / 1000)
     if (diff < 60) return "এইমাত্র"
     if (diff < 3600) return `${Math.floor(diff / 60)} মিনিট আগে`

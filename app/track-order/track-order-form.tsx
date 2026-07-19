@@ -3,13 +3,14 @@
 import { useState } from "react"
 import { Search, Loader2, Package, MapPin } from "lucide-react"
 import { trackOrderAction } from "./actions"
+import type { OrderRow } from "@/lib/order-types"
 
 export function TrackOrderForm() {
   const [orderId, setOrderId] = useState("")
   const [phone, setPhone] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [order, setOrder] = useState<any | null>(null)
+  const [order, setOrder] = useState<OrderRow | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -102,7 +103,7 @@ export function TrackOrderForm() {
               <div className="inline-flex items-center gap-2.5 rounded-full border border-border/50 bg-background/80 px-4 py-1.5 text-sm font-bold uppercase tracking-widest shadow-sm backdrop-blur-md">
                 <div className={
                   order.status === "delivered" ? "h-2.5 w-2.5 rounded-full bg-green-500 shadow-[0_0_10px_rgb(34,197,94,0.6)]" :
-                  order.status === "processing" ? "h-2.5 w-2.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgb(59,130,246,0.6)] animate-pulse" :
+                  order.status === "confirmed" ? "h-2.5 w-2.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgb(59,130,246,0.6)] animate-pulse" :
                   order.status === "shipped" ? "h-2.5 w-2.5 rounded-full bg-indigo-500 shadow-[0_0_10px_rgb(99,102,241,0.6)] animate-pulse" :
                   order.status === "cancelled" ? "h-2.5 w-2.5 rounded-full bg-red-500 shadow-[0_0_10px_rgb(239,68,68,0.6)]" :
                   "h-2.5 w-2.5 rounded-full bg-yellow-500 shadow-[0_0_10px_rgb(234,179,8,0.6)] animate-pulse"

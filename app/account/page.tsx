@@ -12,10 +12,17 @@ export const metadata: Metadata = {
   description: "আপনার অ্যাকাউন্ট ম্যানেজ করুন, প্রোফাইল আপডেট করুন এবং অর্ডার ট্র্যাক করুন।",
 }
 
-export default async function AccountPage() {
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const params = await searchParams
+  const nextUrl = typeof params.next === "string" ? params.next : "/account"
+
   const customer = await getLoggedInCustomer()
   if (!customer) {
-    redirect("/login")
+    redirect(`/login?next=${encodeURIComponent(nextUrl)}`)
   }
 
   const settings = await getSettings()
@@ -29,7 +36,7 @@ export default async function AccountPage() {
     <>
       <SiteHeader active="account" />
       <main className="min-h-screen bg-background">
-        <AccountPageClient accountPromo={settings.accountPromo} recentOrders={recentOrders} />
+        <AccountPageClient accountPromo={settings.accountPromo} recentOrders={recentOrders} nextUrl={nextUrl} />
       </main>
       <SiteFooter />
     </>

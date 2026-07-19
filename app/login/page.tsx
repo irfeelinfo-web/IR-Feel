@@ -11,7 +11,14 @@ export const metadata: Metadata = {
   description: "আপনার অ্যাকাউন্টে লগইন করুন অথবা নতুন অ্যাকাউন্ট খুলুন।",
 }
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const params = await searchParams
+  const nextUrl = typeof params.next === "string" ? params.next : "/account"
+
   // If already logged in, redirect to account
   const customer = await getLoggedInCustomer()
   if (customer) {
@@ -24,7 +31,7 @@ export default async function LoginPage() {
     <>
       <SiteHeader active="account" />
       <main className="min-h-screen bg-background">
-        <AccountPageClient accountPromo={settings.accountPromo} recentOrders={[]} />
+        <AccountPageClient accountPromo={settings.accountPromo} recentOrders={[]} nextUrl={nextUrl} />
       </main>
       <SiteFooter />
     </>

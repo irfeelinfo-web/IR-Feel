@@ -10,9 +10,9 @@ html, body {
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: var(--font-inter), var(--font-hind), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-archivo), var(--font-hind), ui-sans-serif, system-ui, sans-serif;
-  --font-bengali: var(--font-hind), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), var(--font-bengali), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-archivo), var(--font-bengali), ui-sans-serif, system-ui, sans-serif;
+  --font-bengali: var(--font-bengali), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --color-gold: var(--gold);
 
   --color-sidebar-ring: var(--sidebar-ring);

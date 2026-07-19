@@ -10,6 +10,9 @@ import {
   isAuthenticated,
 } from "@/lib/admin-auth"
 import { checkRateLimit, generateFingerprint } from "@/lib/rate-limit"
+import { insertChatMessage, markSessionRead, deleteChatSession as dbDeleteChatSession } from "@/lib/chat"
+import { createCustomerSession, destroyCustomerSession } from "@/lib/customer-auth"
+import { randomBytes, scryptSync, timingSafeEqual } from "crypto"
 import type { SectionKey } from "@/lib/content"
 import type { OrderRow } from "@/lib/order-types"
 
@@ -218,7 +221,8 @@ export async function subscribeNewsletterAction(email: string) {
     return { ok: false as const, error: "খুব বেশি রিকোয়েস্ট করা হয়েছে। একটু পর আবার চেষ্টা করুন।" }
   }
 
-  if (!email || !email.includes("@")) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!email || !emailRegex.test(email)) {
     return { ok: false as const, error: "সঠিক ইমেইল দিন।" }
   }
   try {
@@ -252,7 +256,7 @@ export async function deleteContactAction(id: number) {
 
 /* ── Chat Messaging Actions ── */
 
-import { insertChatMessage, markSessionRead, deleteChatSession as dbDeleteChatSession } from "@/lib/chat"
+// Chat imports moved to top of file
 
 /** Public action — visitor sends a chat message (rate limited) */
 export async function sendChatMessageAction(input: {
@@ -323,9 +327,7 @@ export async function markChatReadAction(sessionId: string) {
 
 /* ── Customer Account Actions ── */
 
-import { createCustomerSession, destroyCustomerSession } from "@/lib/customer-auth"
-
-import { randomBytes, scryptSync, timingSafeEqual } from "crypto"
+// Customer auth and crypto imports moved to top of file
 
 function hashPassword(password: string): string {
   const salt = randomBytes(16).toString("hex")
@@ -444,22 +446,23 @@ export async function customerLoginAction(credential: string, password?: string)
   }
 
   try {
-    const query = isEmail 
+    const sql = isEmail 
       ? "SELECT id, password FROM customers WHERE email = ?"
       : "SELECT id, password FROM customers WHERE phone = ?"
       
-    const customer = await getOne<{ id: number; password: string }>(query, [normalized])
+    const customer = await getOne<{ id: number; password: string }>(sql, [normalized])
 
     if (!customer) {
       return { ok: false as const, error: isEmail ? "এই ইমেইলে কোনো অ্যাকাউন্ট নেই। প্রথমে রেজিস্টার করুন।" : "এই ফোন নম্বরে কোনো অ্যাকাউন্ট নেই। প্রথমে রেজিস্টার করুন।" }
     }
     
-    if (customer.password && !verifyPasswordHash(password, customer.password)) {
-      return { ok: false as const, error: "ভুল পাসওয়ার্ড। আবার চেষ্টা করুন।" }
-    } else if (!customer.password) {
-       // Auto-upgrade password for legacy users upon first successful identification attempt? No, that's unsafe.
-       // Without OTP we can't securely upgrade. But for demo purposes, we will accept the password and save it.
-       await run("UPDATE customers SET password = ? WHERE id = ?", [hashPassword(password), customer.id])
+    if (!customer.password) {
+      // Account has no password (e.g. created via Google sign-in).
+      // Reject login — user must use Google sign-in or reset their password.
+      return { ok: false as const, error: "এই অ্যাকাউন্টে পাসওয়ার্ড সেট করা হয়নি। Google দিয়ে লগইন করুন অথবা রেজিস্ট্রেশন পেজ থেকে পাসওয়ার্ড সেট করুন।" }
+    }
+    if (!verifyPasswordHash(password, customer.password)) {
+      return { ok: false as const, error: "ভুল পাসওয়ার্ড। আবার চেষ্টা করুন।" }
     }
 
     await createCustomerSession(customer.id)

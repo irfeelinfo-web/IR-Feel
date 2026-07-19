@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { PageBanner } from "@/components/page-banner"
 import { collections } from "@/lib/products"
-import { getCollectionProducts } from "@/lib/products-db"
+import { getAllProducts } from "@/lib/products-db"
 import { buildMetadata } from "@/lib/seo"
 
 export const dynamic = "force-dynamic"
@@ -21,8 +21,29 @@ export async function generateMetadata() {
 }
 
 export default async function CollectionsPage() {
-  const counts = await Promise.all(collections.map((c) => getCollectionProducts(c)))
-  const countBySlug = new Map(collections.map((c, i) => [c.slug, counts[i].length]))
+  const allProducts = await getAllProducts()
+  const countBySlug = new Map(
+    collections.map((c) => {
+      let count = 0
+      switch (c.kind) {
+        case "new":
+          count = allProducts.filter((p) => p.newArrival || p.badge === "NEW").length
+          break
+        case "sale":
+          count = allProducts.filter((p) => p.badge === "SALE" || typeof p.oldPrice === "number").length
+          break
+        case "featured":
+          count = allProducts.filter((p) => p.featured).length
+          break
+        case "outerwear":
+          count = allProducts.filter((p) => /jacket|hoodie|sweatshirt|sweater/i.test(p.name)).length
+          break
+        default:
+          count = allProducts.length
+      }
+      return [c.slug, count]
+    })
+  )
   return (
     <>
       <SiteHeader active="collection" />

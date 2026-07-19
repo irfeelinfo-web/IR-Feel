@@ -1,6 +1,8 @@
 "use server"
 
 import { getOne } from "@/lib/db"
+import { checkRateLimit } from "@/lib/rate-limit"
+import { headers } from "next/headers"
 
 /** Normalize phone to last 11 digits (Bangladesh format) */
 function normalizePhone(raw: string): string {
@@ -12,6 +14,14 @@ function normalizePhone(raw: string): string {
 }
 
 export async function trackOrderAction(orderId: string, phone: string) {
+  // Rate limiting to prevent abuse
+  const h = await headers()
+  const ip = h.get("x-forwarded-for") || "127.0.0.1"
+  const isAllowed = await checkRateLimit(`track_${ip}`, 30, 60_000) // 30 req per minute
+  if (!isAllowed) {
+    return { error: "অনেক বেশি অনুরোধ করা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।" }
+  }
+
   if (!orderId || !phone) {
     return { error: "অর্ডার আইডি এবং ফোন নম্বর উভয়ই দিন।" }
   }

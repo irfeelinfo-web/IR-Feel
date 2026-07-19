@@ -11,15 +11,16 @@ import { getAllProducts } from "@/lib/products-db"
 import type { ShopCategory } from "@/lib/products"
 import { buildMetadata } from "@/lib/seo"
 
-export const dynamic = "force-dynamic"
-
 type CategoryConfig = {
-  title: string
+  title: ShopCategory
   navKey: string
   description: string
   image: string
   bannerBg?: string
 }
+
+const isShopCategory = (value: string): value is ShopCategory =>
+  ["Men", "Women", "Kids", "Accessories"].includes(value as ShopCategory)
 
 const categories: Record<string, CategoryConfig> = {
   men: {
@@ -81,6 +82,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   }
 
   const products = await getAllProducts()
+  const lockedCategory = isShopCategory(config.title) ? config.title : undefined
 
   return (
     <>
@@ -122,7 +124,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         {/* Category grid + filters */}
         <section className="mx-auto max-w-[1280px] px-4 pb-20 sm:px-6">
           <Suspense fallback={<div className="py-20 text-center font-semibold">Loading...</div>}>
-            <ShopContent products={products} lockedCategory={config.title} />
+            <ShopContent products={products} lockedCategory={lockedCategory} />
           </Suspense>
         </section>
       </main>

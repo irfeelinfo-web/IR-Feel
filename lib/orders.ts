@@ -19,12 +19,13 @@ export async function getAllOrders(): Promise<OrderRow[]> {
 }
 
 export async function getOrdersByPhone(phone: string): Promise<OrderRow[]> {
+  const normalized = phone.replace(/\D/g, '').slice(-11);
   const rows = await query<OrderRow & { items: string }>(
     `SELECT id, order_uid, customer_name, phone, address, location, payment_method,
             transaction_id, items, subtotal, delivery_charge, total,
             status, created_at
-     FROM orders WHERE phone = ? ORDER BY created_at DESC`,
-    [phone]
+     FROM orders WHERE phone LIKE ? ORDER BY created_at DESC`,
+    [`%${normalized}%`]
   )
   return rows.map((r) => ({
     ...r,

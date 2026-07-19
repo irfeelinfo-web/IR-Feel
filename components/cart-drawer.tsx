@@ -72,7 +72,7 @@ export function CartDrawer() {
           <div className="flex items-center gap-2">
             <ShoppingBag className="h-5 w-5" strokeWidth={1.5} />
             <h2 className="text-sm font-semibold tracking-widest text-foreground">
-              YOUR CART ({count})
+              আপনার কার্ট ({count})
             </h2>
           </div>
           <button
@@ -88,12 +88,12 @@ export function CartDrawer() {
         {items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center">
             <ShoppingBag className="h-12 w-12 text-muted-foreground" strokeWidth={1} />
-            <p className="text-sm text-muted-foreground">Your cart is empty.</p>
+            <p className="text-sm text-muted-foreground">আপনার কার্ট খালি।</p>
             <button
               onClick={closeCart}
               className="mt-2 bg-primary px-6 py-3 text-[11px] font-semibold tracking-widest text-primary-foreground transition-colors hover:bg-primary/85"
             >
-              CONTINUE SHOPPING
+              শপিং চালিয়ে যান
             </button>
           </div>
         ) : (
@@ -165,11 +165,11 @@ export function CartDrawer() {
             {/* Footer */}
             <div className="border-t border-border/40 px-5 py-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Subtotal</span>
+                <span className="text-sm text-muted-foreground">সাবটোটাল</span>
                 <span className="text-lg font-bold text-foreground">{bdt(subtotal)}</span>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Shipping &amp; taxes calculated at checkout.
+                শিপিং ও ট্যাক্স চেকআউটে ক্যালকুলেট হবে।
               </p>
               <div className="mt-4 flex flex-col gap-2">
                 <Link
@@ -177,13 +177,13 @@ export function CartDrawer() {
                   onClick={closeCart}
                   className="flex h-12 items-center justify-center bg-primary text-[11px] font-semibold tracking-widest text-primary-foreground transition-colors hover:bg-primary/85"
                 >
-                  PROCEED TO ORDER
+                  অর্ডার করুন
                 </Link>
                 <button
                   onClick={closeCart}
                   className="flex h-12 items-center justify-center border border-border text-[11px] font-semibold tracking-widest text-foreground transition-colors hover:bg-muted"
                 >
-                  CONTINUE SHOPPING
+                  শপিং চালিয়ে যান
                 </button>
               </div>
             </div>

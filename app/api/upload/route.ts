@@ -57,6 +57,14 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
+    // Check for Vercel/serverless environment
+    if (process.env.VERCEL) {
+      return NextResponse.json(
+        { error: "Local file uploads are not supported on Vercel. Please configure cloud storage (e.g., AWS S3, Vercel Blob)." },
+        { status: 501 }
+      )
+    }
+
     // Ensure upload directory exists
     const uploadDir = path.join(process.cwd(), "public", "images", "uploads")
     await mkdir(uploadDir, { recursive: true })

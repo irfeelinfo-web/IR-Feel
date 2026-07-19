@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import Script from "next/script"
 import {
   User,
@@ -55,20 +56,20 @@ const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""
 /* ═══════════════════════════════════════════════════════════════════════
    Main Account Page Client
    ═══════════════════════════════════════════════════════════════════════ */
-export function AccountPageClient({ accountPromo, recentOrders }: { accountPromo?: SiteSettings["accountPromo"], recentOrders?: OrderRow[] }) {
+export function AccountPageClient({ accountPromo, recentOrders, nextUrl = "/account" }: { accountPromo?: SiteSettings["accountPromo"], recentOrders?: OrderRow[], nextUrl?: string }) {
   const { customer } = useCustomer()
 
   if (customer) {
     return <ProfileView accountPromo={accountPromo} recentOrders={recentOrders} />
   }
 
-  return <AuthView accountPromo={accountPromo} />
+  return <AuthView accountPromo={accountPromo} nextUrl={nextUrl} />
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
    Auth View — Login + Register + Google
    ═══════════════════════════════════════════════════════════════════════ */
-function AuthView({ accountPromo }: { accountPromo?: SiteSettings["accountPromo"] }) {
+function AuthView({ accountPromo, nextUrl }: { accountPromo?: SiteSettings["accountPromo"], nextUrl: string }) {
   const router = useRouter()
   const { setCustomer, refresh } = useCustomer()
   const [tab, setTab] = useState<"login" | "register">("login")
@@ -103,7 +104,7 @@ function AuthView({ accountPromo }: { accountPromo?: SiteSettings["accountPromo"
         const data = await res.json()
         if (data.ok) {
           setCustomer(data.customer)
-          router.replace("/account")
+          router.replace(nextUrl)
         } else {
           setError(data.error || "Google সাইন-ইন ব্যর্থ হয়েছে।")
         }
@@ -143,7 +144,7 @@ function AuthView({ accountPromo }: { accountPromo?: SiteSettings["accountPromo"
       const res = await customerLoginAction(loginCredential, loginPassword)
       if (res.ok) {
         if (res.customer) setCustomer(res.customer)
-        router.replace("/account")
+        router.replace(nextUrl)
       } else {
         setError(res.error || "লগইন ব্যর্থ হয়েছে।")
       }
@@ -163,7 +164,7 @@ function AuthView({ accountPromo }: { accountPromo?: SiteSettings["accountPromo"
       const res = await registerCustomerAction(reg)
       if (res.ok) {
         if (res.customer) setCustomer(res.customer)
-        router.replace("/account")
+        router.replace(nextUrl)
       } else {
         setError(res.error || "রেজিস্ট্রেশন ব্যর্থ হয়েছে।")
       }
@@ -562,11 +563,12 @@ function ProfileView({ accountPromo, recentOrders = [] }: { accountPromo?: SiteS
               <div className="absolute -inset-1 rounded-[1.75rem] bg-gradient-to-br from-foreground/20 to-foreground/0 blur-md transition-all duration-500 group-hover:blur-lg opacity-60" />
               {customer.avatar ? (
                 <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-white/20 shadow-lg ring-2 ring-background/50 sm:h-24 sm:w-24 bg-background">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src={customer.avatar}
                     alt={customer.name}
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    fill
+                    sizes="(max-width: 640px) 80px, 96px"
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                 </div>
               ) : (
@@ -698,7 +700,7 @@ function ProfileView({ accountPromo, recentOrders = [] }: { accountPromo?: SiteS
                     <h3 className="text-sm font-bold tracking-tight text-foreground mb-4">সাম্প্রতিক অর্ডার সমূহ</h3>
                     {recentOrders && recentOrders.length > 0 ? (
                       <div className="flex flex-col gap-3">
-                        {recentOrders.slice(0, 3).map((order: any) => (
+                        {recentOrders.slice(0, 3).map((order: OrderRow) => (
                           <div key={order.id} className="flex items-center justify-between rounded-2xl border border-border/50 bg-background/50 p-4 transition-all hover:bg-muted/30">
                             <div>
                               <p className="text-sm font-bold text-foreground">#{order.order_uid}</p>
@@ -734,7 +736,7 @@ function ProfileView({ accountPromo, recentOrders = [] }: { accountPromo?: SiteS
               {activeTab === 'orders' && (
                 <div className="space-y-4">
                   {recentOrders && recentOrders.length > 0 ? (
-                    recentOrders.map((order: any) => (
+                    recentOrders.map((order: OrderRow) => (
                       <div key={order.id} className="overflow-hidden rounded-3xl border border-border/50 bg-card/60 backdrop-blur-xl shadow-xl">
                         <div className="flex items-center justify-between border-b border-border/50 bg-muted/10 px-5 py-4">
                           <div>
@@ -751,7 +753,7 @@ function ProfileView({ accountPromo, recentOrders = [] }: { accountPromo?: SiteS
                         </div>
                         <div className="p-5">
                           <div className="flex flex-col gap-3">
-                            {order.items.map((item: any, idx: number) => (
+                            {order.items.map((item: OrderRow["items"][0], idx: number) => (
                               <div key={idx} className="flex items-center gap-3 border-b border-border/40 pb-3 last:border-0 last:pb-0">
                                 <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-muted">
                                   <img src={item.image} alt={item.name} className="h-full w-full object-cover" />

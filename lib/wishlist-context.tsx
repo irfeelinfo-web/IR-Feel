@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { createContext, useContext, useEffect, useMemo, useState, useCallback } from "react"
 
 export type WishlistItem = {
   id: string
@@ -49,30 +49,30 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items, hydrated])
 
-  function add(item: WishlistItem) {
+  const add = useCallback((item: WishlistItem) => {
     setItems((prev) => (prev.some((i) => i.id === item.id) ? prev : [...prev, item]))
-  }
+  }, [])
 
-  function remove(id: string) {
+  const remove = useCallback((id: string) => {
     setItems((prev) => prev.filter((i) => i.id !== id))
-  }
+  }, [])
 
-  function toggle(item: WishlistItem) {
+  const toggle = useCallback((item: WishlistItem) => {
     setItems((prev) =>
       prev.some((i) => i.id === item.id)
         ? prev.filter((i) => i.id !== item.id)
         : [...prev, item],
     )
-  }
+  }, [])
 
-  function clear() {
+  const clear = useCallback(() => {
     setItems([])
-  }
+  }, [])
 
   const value = useMemo<WishlistContextValue>(() => {
     const has = (id: string) => items.some((i) => i.id === id)
     return { items, count: items.length, has, toggle, add, remove, clear }
-  }, [items])
+  }, [items, toggle, add, remove, clear])
 
   return <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>
 }

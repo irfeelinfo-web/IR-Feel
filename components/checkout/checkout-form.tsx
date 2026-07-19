@@ -81,15 +81,7 @@ export function CheckoutForm({ payment: paymentConfig = defaultPayment, freeShip
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // fallback
-      const el = document.createElement("textarea")
-      el.value = orderId ?? ""
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand("copy")
-      document.body.removeChild(el)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      console.error("Clipboard API not supported")
     }
   }
 
@@ -152,6 +144,9 @@ export function CheckoutForm({ payment: paymentConfig = defaultPayment, freeShip
 
           {/* Modal Card */}
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
             className="font-bengali relative z-10 w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
             style={{ animation: "modal-slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards" }}
           >
@@ -203,7 +198,7 @@ export function CheckoutForm({ payment: paymentConfig = defaultPayment, freeShip
 
             {/* Content */}
             <div className="flex flex-col items-center gap-5 px-6 pb-7 pt-5 text-center sm:px-8">
-              <h2 className="text-xl font-extrabold tracking-tight text-foreground">
+              <h2 id="modal-title" className="text-xl font-extrabold tracking-tight text-foreground">
                 অর্ডার সফলভাবে সম্পন্ন হয়েছে! 🎉
               </h2>
 

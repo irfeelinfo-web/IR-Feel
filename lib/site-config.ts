@@ -167,8 +167,8 @@ export const defaultSettings: SiteSettings = {
   brandAccent: ".",
   logoImage: "",
   faviconImage: "",
-  phone: "+880 1700-000000",
-  email: "irfeel.info@gmail.com",
+  phone: "",
+  email: "",
   address: "Dhaka, Bangladesh",
   currencySymbol: "৳",
   freeShippingThreshold: 999,
@@ -183,7 +183,7 @@ export const defaultSettings: SiteSettings = {
   },
   productWhatsappButton: true,
   productCallButton: true,
-  whatsappNumber: "+880 1700-000000",
+  whatsappNumber: "",
   accountPromo: {
     enabled: true,
     title: "বিশেষ অফার!",
@@ -403,11 +403,11 @@ export const defaultPages: PagesConfig = {
     "We accept returns and exchanges within 7 days of delivery. Items must be unworn, unwashed and in their original packaging with tags attached.",
   contactTitle: "Get in Touch",
   contactIntro: "Have a question? We'd love to hear from you.",
-  contactPhone: "+880 1700-000000",
-  contactEmail: "irfeel.info@gmail.com",
-  contactAddress: "Dhaka, Bangladesh",
-  contactHours: "Sat - Thu: 10:00 AM - 8:00 PM",
-  contactWhatsapp: "+880 1700-000000",
+  contactPhone: "",
+  contactEmail: "",
+  contactAddress: "",
+  contactHours: "",
+  contactWhatsapp: "",
   stores: [
     {
       name: "IR Feel Flagship — Gulshan",
@@ -431,19 +431,26 @@ export function mergeDefaults<T>(defaults: T, stored: unknown): T {
   if (stored === null || stored === undefined) return defaults
   if (Array.isArray(defaults)) {
     if (!Array.isArray(stored)) return defaults
-    // Use the first element of defaults as a template for merging objects inside the array
-    const template = defaults[0]
-    if (typeof template === "object" && template !== null) {
-      return stored.map((item) => mergeDefaults(template, item)) as T
+    if (defaults.length > 0) {
+      const template = defaults[0]
+      if (typeof template === "object" && template !== null) {
+        // Merge each stored item with the template, and append any missing default items
+        const merged = stored.map((item) => mergeDefaults(template, item))
+        // If defaults has more items than stored, fill in the missing ones
+        for (let i = stored.length; i < defaults.length; i++) {
+          merged.push(defaults[i])
+        }
+        return merged as T
+      }
     }
     return stored as T
   }
   if (typeof defaults === "object" && typeof stored === "object") {
-    const out: any = { ...defaults }
-    for (const key of Object.keys(defaults as any)) {
-      out[key] = mergeDefaults((defaults as any)[key], (stored as any)[key])
+    const out: Record<string, unknown> = { ...(defaults as Record<string, unknown>) }
+    for (const key of Object.keys(defaults as Record<string, unknown>)) {
+      out[key] = mergeDefaults((defaults as Record<string, unknown>)[key], (stored as Record<string, unknown>)[key])
     }
-    return out
+    return out as T
   }
   return (stored as T) ?? defaults
 }

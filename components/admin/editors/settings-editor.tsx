@@ -70,10 +70,10 @@ export function SettingsEditor({
 
         <Card title="যোগাযোগ">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <TextField label="ফোন নম্বর" value={s.phone} onChange={(v) => set("phone", v)} />
-            <TextField label="WhatsApp নম্বর" value={s.whatsappNumber || ""} onChange={(v) => set("whatsappNumber", v)} />
-            <TextField label="ইমেইল" value={s.email} onChange={(v) => set("email", v)} />
-            <TextField label="ঠিকানা" value={s.address} onChange={(v) => set("address", v)} />
+            <TextField label="ফোন নম্বর" value={s.phone} onChange={(v) => set("phone", v)} placeholder="+880 1700-000000" />
+            <TextField label="WhatsApp নম্বর" value={s.whatsappNumber || ""} onChange={(v) => set("whatsappNumber", v)} placeholder="+880 1700-000000" />
+            <TextField label="ইমেইল" value={s.email} onChange={(v) => set("email", v)} placeholder="hello@irfeel.info" />
+            <TextField label="ঠিকানা" value={s.address} onChange={(v) => set("address", v)} placeholder="Dhaka, Bangladesh" />
           </div>
         </Card>
 

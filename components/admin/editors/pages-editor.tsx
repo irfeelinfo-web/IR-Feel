@@ -78,11 +78,11 @@ export function PagesEditor({ initial }: { initial: PagesConfig }) {
             <TextField label="শিরোনাম" value={p.contactTitle} onChange={(v) => set("contactTitle", v)} />
             <AreaField label="ভূমিকা" value={p.contactIntro} onChange={(v) => set("contactIntro", v)} />
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <TextField label="ফোন" value={p.contactPhone} onChange={(v) => set("contactPhone", v)} />
-              <TextField label="WhatsApp নম্বর" value={p.contactWhatsapp || ""} onChange={(v) => set("contactWhatsapp", v)} />
-              <TextField label="ইমেইল" value={p.contactEmail} onChange={(v) => set("contactEmail", v)} />
-              <TextField label="ঠিকানা" value={p.contactAddress} onChange={(v) => set("contactAddress", v)} />
-              <TextField label="সময়সূচি" value={p.contactHours} onChange={(v) => set("contactHours", v)} />
+              <TextField label="ফোন" value={p.contactPhone} onChange={(v) => set("contactPhone", v)} placeholder="+880 1700-000000" />
+              <TextField label="WhatsApp নম্বর" value={p.contactWhatsapp || ""} onChange={(v) => set("contactWhatsapp", v)} placeholder="+880 1700-000000" />
+              <TextField label="ইমেইল" value={p.contactEmail} onChange={(v) => set("contactEmail", v)} placeholder="hello@irfeel.info" />
+              <TextField label="ঠিকানা" value={p.contactAddress} onChange={(v) => set("contactAddress", v)} placeholder="Dhaka, Bangladesh" />
+              <TextField label="সময়সূচি" value={p.contactHours} onChange={(v) => set("contactHours", v)} placeholder="Sat - Thu: 10:00 AM - 8:00 PM" />
             </div>
           </div>
         </Card>

@@ -8,14 +8,6 @@ import { FeaturesStrip } from "@/components/home/features-strip"
 import { NewArrivals } from "@/components/home/new-arrivals"
 import { CustomerReviews } from "@/components/home/customer-reviews"
 import { getHome } from "@/lib/content"
-import { buildMetadata } from "@/lib/seo"
-
-export const dynamic = "force-dynamic"
-
-
-export async function generateMetadata() {
-  return await buildMetadata({ path: "/" })
-}
 
 export default async function HomePage() {
   const home = await getHome()

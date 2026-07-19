@@ -14,12 +14,15 @@ type Message = {
 }
 
 function generateSessionId() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return "chat_" + crypto.randomUUID()
+  }
   return "chat_" + Math.random().toString(36).slice(2) + Date.now().toString(36)
 }
 
 function formatTime(iso: string) {
   try {
-    const d = new Date(iso + "Z")
+    const d = new Date(iso.replace(" ", "T") + "Z")
     return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })
   } catch {
     return ""
@@ -94,11 +97,13 @@ export function ChatWidget() {
   useEffect(() => {
     if (isAdmin || !started || !sessionId) return
     fetchMessages()
-    pollRef.current = setInterval(fetchMessages, 4000)
+    // Poll less frequently when closed to save DB load
+    const intervalMs = open ? 5000 : 60000
+    pollRef.current = setInterval(fetchMessages, intervalMs)
     return () => {
       if (pollRef.current) clearInterval(pollRef.current)
     }
-  }, [isAdmin, started, sessionId, fetchMessages])
+  }, [isAdmin, started, sessionId, open, fetchMessages])
 
   /* ── Clear new message indicator when opened ── */
   useEffect(() => {
@@ -250,6 +255,9 @@ export function ChatWidget() {
                     </div>
                     <p className="text-xs text-neutral-500 dark:text-neutral-400">
                       হ্যালো {name}! 👋 আমাদের কিছু জিজ্ঞাসা থাকলে মেসেজ দিন।
+                    </p>
+                    <p className="mt-1 text-[10px] text-neutral-400 dark:text-neutral-500">
+                      * আপনার পাসওয়ার্ড বা কার্ডের তথ্য শেয়ার করবেন না।
                     </p>
                   </div>
                 )}

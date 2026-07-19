@@ -45,150 +45,158 @@ export function generateOrderUid(): string {
 /* ── Initialize database tables ── */
 async function initDb(): Promise<void> {
   if (globalForDb.__dbReady) return
-  const client = getClient()
 
-  await client.executeMultiple(`
-    CREATE TABLE IF NOT EXISTS site_content (
-      section TEXT PRIMARY KEY,
-      data    TEXT NOT NULL DEFAULT '{}',
-      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS products (
-      id          TEXT PRIMARY KEY,
-      name        TEXT NOT NULL,
-      price       REAL NOT NULL DEFAULT 0,
-      old_price   REAL,
-      image       TEXT NOT NULL DEFAULT '',
-      badge       TEXT,
-      category    TEXT,
-      colors      TEXT NOT NULL DEFAULT '[]',
-      sizes       TEXT NOT NULL DEFAULT '[]',
-      description TEXT,
-      images      TEXT NOT NULL DEFAULT '[]',
-      rating      REAL NOT NULL DEFAULT 5,
-      reviews     INTEGER NOT NULL DEFAULT 0,
-      in_stock    INTEGER NOT NULL DEFAULT 1,
-      featured    INTEGER NOT NULL DEFAULT 0,
-      new_arrival INTEGER NOT NULL DEFAULT 0,
-      sort_order  INTEGER NOT NULL DEFAULT 0,
-      created_at  TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS rate_limits (
-      ip TEXT PRIMARY KEY,
-      count INTEGER NOT NULL,
-      expires_at INTEGER NOT NULL DEFAULT 0
-    );
-
-    CREATE TABLE IF NOT EXISTS orders (
-      id               INTEGER PRIMARY KEY AUTOINCREMENT,
-      order_uid        TEXT NOT NULL DEFAULT '',
-      customer_name    TEXT NOT NULL,
-      phone            TEXT NOT NULL,
-      address          TEXT NOT NULL,
-      location         TEXT NOT NULL DEFAULT '',
-      payment_method   TEXT NOT NULL DEFAULT 'cod',
-      transaction_id   TEXT,
-      items            TEXT NOT NULL DEFAULT '[]',
-      subtotal         REAL NOT NULL DEFAULT 0,
-      delivery_charge  REAL NOT NULL DEFAULT 0,
-      total            REAL NOT NULL DEFAULT 0,
-      status           TEXT NOT NULL DEFAULT 'pending',
-      created_at       TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS contacts (
-      id         INTEGER PRIMARY KEY AUTOINCREMENT,
-      name       TEXT NOT NULL,
-      phone      TEXT NOT NULL DEFAULT '',
-      email      TEXT NOT NULL DEFAULT '',
-      subject    TEXT NOT NULL DEFAULT '',
-      message    TEXT NOT NULL DEFAULT '',
-      created_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS newsletter (
-      email         TEXT PRIMARY KEY,
-      subscribed_at TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS chat_messages (
-      id           INTEGER PRIMARY KEY AUTOINCREMENT,
-      session_id   TEXT NOT NULL,
-      sender_name  TEXT NOT NULL DEFAULT 'ভিজিটর',
-      sender_phone TEXT NOT NULL DEFAULT '',
-      message      TEXT NOT NULL,
-      is_admin     INTEGER NOT NULL DEFAULT 0,
-      is_read      INTEGER NOT NULL DEFAULT 0,
-      created_at   TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_chat_session ON chat_messages(session_id);
-
-    CREATE TABLE IF NOT EXISTS customers (
-      id          INTEGER PRIMARY KEY AUTOINCREMENT,
-      name        TEXT NOT NULL,
-      phone       TEXT NOT NULL UNIQUE,
-      email       TEXT NOT NULL DEFAULT '',
-      password    TEXT NOT NULL DEFAULT '',
-      address     TEXT NOT NULL DEFAULT '',
-      city        TEXT NOT NULL DEFAULT '',
-      google_id   TEXT,
-      avatar      TEXT NOT NULL DEFAULT '',
-      reward_points INTEGER NOT NULL DEFAULT 0,
-      created_at  TEXT NOT NULL DEFAULT (datetime('now'))
-    );
-
-    CREATE TABLE IF NOT EXISTS customer_sessions (
-      id           INTEGER PRIMARY KEY AUTOINCREMENT,
-      customer_id  INTEGER NOT NULL,
-      token        TEXT NOT NULL UNIQUE,
-      created_at   TEXT NOT NULL DEFAULT (datetime('now')),
-      FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_customer_session_token ON customer_sessions(token);
-
-    CREATE TABLE IF NOT EXISTS profile_change_requests (
-      id            INTEGER PRIMARY KEY AUTOINCREMENT,
-      customer_id   INTEGER NOT NULL,
-      field_type    TEXT NOT NULL CHECK(field_type IN ('phone', 'email')),
-      current_value TEXT NOT NULL DEFAULT '',
-      new_value     TEXT NOT NULL,
-      status        TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'approved', 'rejected')),
-      admin_note    TEXT NOT NULL DEFAULT '',
-      created_at    TEXT NOT NULL DEFAULT (datetime('now')),
-      updated_at    TEXT NOT NULL DEFAULT (datetime('now')),
-      FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
-    );
-  `)
-
-  // Safe column migrations (ignore errors if columns exist)
-  const safeMigrations = [
-    "ALTER TABLE orders ADD COLUMN order_uid TEXT NOT NULL DEFAULT ''",
-    "ALTER TABLE customers ADD COLUMN google_id TEXT",
-    "ALTER TABLE customers ADD COLUMN avatar TEXT NOT NULL DEFAULT ''",
-    "ALTER TABLE customers ADD COLUMN reward_points INTEGER NOT NULL DEFAULT 0",
-    "ALTER TABLE customers ADD COLUMN password TEXT NOT NULL DEFAULT ''",
-    "ALTER TABLE rate_limits ADD COLUMN expires_at INTEGER NOT NULL DEFAULT 0",
-  ]
-  for (const sql of safeMigrations) {
-    try { await getClient().execute(sql) } catch { /* column exists */ }
-  }
-
-  // Backfill empty order_uid values
-  const emptyUids = await query<{ id: number }>("SELECT id FROM orders WHERE order_uid = ''")
-  for (const row of emptyUids) {
-    await run("UPDATE orders SET order_uid = ? WHERE id = ?", [generateOrderUid(), row.id])
-  }
-
-  // Migrate existing JSON data into DB (one-time, local dev only)
-  if (!process.env.TURSO_DATABASE_URL) {
-    await migrateJsonData()
-  }
-
+  // Prevent infinite recursion loops if helper functions (query, run, getOne)
+  // are called within the database initialization/migration functions themselves.
   globalForDb.__dbReady = true
+
+  try {
+    const client = getClient()
+
+    await client.executeMultiple(`
+      CREATE TABLE IF NOT EXISTS site_content (
+        section TEXT PRIMARY KEY,
+        data    TEXT NOT NULL DEFAULT '{}',
+        updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS products (
+        id          TEXT PRIMARY KEY,
+        name        TEXT NOT NULL,
+        price       REAL NOT NULL DEFAULT 0,
+        old_price   REAL,
+        image       TEXT NOT NULL DEFAULT '',
+        badge       TEXT,
+        category    TEXT,
+        colors      TEXT NOT NULL DEFAULT '[]',
+        sizes       TEXT NOT NULL DEFAULT '[]',
+        description TEXT,
+        images      TEXT NOT NULL DEFAULT '[]',
+        rating      REAL NOT NULL DEFAULT 5,
+        reviews     INTEGER NOT NULL DEFAULT 0,
+        in_stock    INTEGER NOT NULL DEFAULT 1,
+        featured    INTEGER NOT NULL DEFAULT 0,
+        new_arrival INTEGER NOT NULL DEFAULT 0,
+        sort_order  INTEGER NOT NULL DEFAULT 0,
+        created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS rate_limits (
+        ip TEXT PRIMARY KEY,
+        count INTEGER NOT NULL,
+        expires_at INTEGER NOT NULL DEFAULT 0
+      );
+
+      CREATE TABLE IF NOT EXISTS orders (
+        id               INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_uid        TEXT NOT NULL DEFAULT '',
+        customer_name    TEXT NOT NULL,
+        phone            TEXT NOT NULL,
+        address          TEXT NOT NULL,
+        location         TEXT NOT NULL DEFAULT '',
+        payment_method   TEXT NOT NULL DEFAULT 'cod',
+        transaction_id   TEXT,
+        items            TEXT NOT NULL DEFAULT '[]',
+        subtotal         REAL NOT NULL DEFAULT 0,
+        delivery_charge  REAL NOT NULL DEFAULT 0,
+        total            REAL NOT NULL DEFAULT 0,
+        status           TEXT NOT NULL DEFAULT 'pending',
+        created_at       TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS contacts (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        name       TEXT NOT NULL,
+        phone      TEXT NOT NULL DEFAULT '',
+        email      TEXT NOT NULL DEFAULT '',
+        subject    TEXT NOT NULL DEFAULT '',
+        message    TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS newsletter (
+        email         TEXT PRIMARY KEY,
+        subscribed_at TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS chat_messages (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id   TEXT NOT NULL,
+        sender_name  TEXT NOT NULL DEFAULT 'ভিজিটর',
+        sender_phone TEXT NOT NULL DEFAULT '',
+        message      TEXT NOT NULL,
+        is_admin     INTEGER NOT NULL DEFAULT 0,
+        is_read      INTEGER NOT NULL DEFAULT 0,
+        created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_chat_session ON chat_messages(session_id);
+
+      CREATE TABLE IF NOT EXISTS customers (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        name        TEXT NOT NULL,
+        phone       TEXT NOT NULL UNIQUE,
+        email       TEXT NOT NULL DEFAULT '',
+        password    TEXT NOT NULL DEFAULT '',
+        address     TEXT NOT NULL DEFAULT '',
+        city        TEXT NOT NULL DEFAULT '',
+        google_id   TEXT,
+        avatar      TEXT NOT NULL DEFAULT '',
+        reward_points INTEGER NOT NULL DEFAULT 0,
+        created_at  TEXT NOT NULL DEFAULT (datetime('now'))
+      );
+
+      CREATE TABLE IF NOT EXISTS customer_sessions (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id  INTEGER NOT NULL,
+        token        TEXT NOT NULL UNIQUE,
+        created_at   TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_customer_session_token ON customer_sessions(token);
+
+      CREATE TABLE IF NOT EXISTS profile_change_requests (
+        id            INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id   INTEGER NOT NULL,
+        field_type    TEXT NOT NULL CHECK(field_type IN ('phone', 'email')),
+        current_value TEXT NOT NULL DEFAULT '',
+        new_value     TEXT NOT NULL,
+        status        TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'approved', 'rejected')),
+        admin_note    TEXT NOT NULL DEFAULT '',
+        created_at    TEXT NOT NULL DEFAULT (datetime('now')),
+        updated_at    TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
+      );
+    `)
+
+    // Safe column migrations (ignore errors if columns exist)
+    const safeMigrations = [
+      "ALTER TABLE orders ADD COLUMN order_uid TEXT NOT NULL DEFAULT ''",
+      "ALTER TABLE customers ADD COLUMN google_id TEXT",
+      "ALTER TABLE customers ADD COLUMN avatar TEXT NOT NULL DEFAULT ''",
+      "ALTER TABLE customers ADD COLUMN reward_points INTEGER NOT NULL DEFAULT 0",
+      "ALTER TABLE customers ADD COLUMN password TEXT NOT NULL DEFAULT ''",
+      "ALTER TABLE rate_limits ADD COLUMN expires_at INTEGER NOT NULL DEFAULT 0",
+    ]
+    for (const sql of safeMigrations) {
+      try { await getClient().execute(sql) } catch { /* column exists */ }
+    }
+
+    // Backfill empty order_uid values
+    const emptyUids = await query<{ id: number }>("SELECT id FROM orders WHERE order_uid = ''")
+    for (const row of emptyUids) {
+      await run("UPDATE orders SET order_uid = ? WHERE id = ?", [generateOrderUid(), row.id])
+    }
+
+    // Migrate existing JSON data into DB (one-time, local dev only)
+    if (!process.env.TURSO_DATABASE_URL) {
+      await migrateJsonData()
+    }
+  } catch (error) {
+    globalForDb.__dbReady = false
+    throw error
+  }
 }
 
 /* ── Migrate existing .data/*.json into DB ── */

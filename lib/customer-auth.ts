@@ -49,15 +49,35 @@ export async function getLoggedInCustomer(): Promise<CustomerSession | null> {
     const token = store.get(COOKIE_NAME)?.value
     if (!token) return null
 
-    const row = await getOne<CustomerSession>(
-      `SELECT c.id, c.name, c.phone, c.email, c.address, c.city, c.avatar, c.google_id, c.reward_points
+    const row = await getOne<CustomerSession & { created_at: string }>(
+      `SELECT c.id, c.name, c.phone, c.email, c.address, c.city, c.avatar, c.google_id, c.reward_points, s.created_at
        FROM customer_sessions s
        JOIN customers c ON c.id = s.customer_id
        WHERE s.token = ?`,
       [token],
     )
 
-    return row || null
+    if (!row) return null
+
+    // Fix #13: Server-side session expiration check (30 days)
+    const createdAt = new Date(row.created_at + "Z").getTime()
+    const age = Date.now() - createdAt
+    if (age > 30 * 24 * 60 * 60 * 1000) {
+      await run("DELETE FROM customer_sessions WHERE token = ?", [token])
+      return null
+    }
+
+    return {
+      id: row.id,
+      name: row.name,
+      phone: row.phone,
+      email: row.email,
+      address: row.address,
+      city: row.city,
+      avatar: row.avatar,
+      google_id: row.google_id,
+      reward_points: row.reward_points,
+    }
   } catch {
     return null
   }

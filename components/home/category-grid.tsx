@@ -10,9 +10,9 @@ export async function CategoryGrid() {
   return (
     <section className="mx-auto max-w-[1280px] px-4 py-12 sm:px-6">
       <div className="grid grid-cols-2 gap-5 lg:grid-cols-4">
-        {categories.map((cat) => (
+        {categories.map((cat, index) => (
           <Link
-            key={cat.name}
+            key={cat.href || index}
             href={cat.href}
             className="group relative flex aspect-[3/4] flex-col justify-end overflow-hidden rounded-xl bg-muted"
           >

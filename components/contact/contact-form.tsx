@@ -86,6 +86,7 @@ export function ContactForm() {
             id="c-name"
             name="name"
             required
+            maxLength={100}
             placeholder="পুরো নাম লিখুন"
             className="glass-contact-input h-11 px-4 text-base text-foreground outline-none placeholder:text-muted-foreground"
           />
@@ -113,6 +114,7 @@ export function ContactForm() {
             id="c-email"
             name="email"
             type="email"
+            maxLength={100}
             placeholder="you@example.com"
             className="glass-contact-input h-11 px-4 text-base text-foreground outline-none placeholder:text-muted-foreground"
           />
@@ -149,6 +151,7 @@ export function ContactForm() {
           id="c-message"
           name="message"
           required
+          maxLength={1000}
           rows={5}
           placeholder="আপনার প্রশ্ন বা মন্তব্য বিস্তারিত লিখুন..."
           className="glass-contact-input resize-none px-4 py-3 text-base text-foreground outline-none placeholder:text-muted-foreground"

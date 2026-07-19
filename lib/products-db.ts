@@ -144,14 +144,17 @@ const fallbackProducts: AdminProduct[] = [
   },
 ]
 
-let isSeeded = false
+const globalAny = global as any
+if (typeof globalAny.isSeeded === "undefined") {
+  globalAny.isSeeded = false
+}
 
 /** Seed fallback products into the database if it's empty */
 async function ensureSeeded() {
-  if (isSeeded) return
+  if (globalAny.isSeeded) return
   const count = await getOne<{ c: number }>("SELECT COUNT(*) as c FROM products")
   if (count && count.c > 0) {
-    isSeeded = true
+    globalAny.isSeeded = true
     return
   }
   for (const p of fallbackProducts) {
@@ -165,7 +168,7 @@ async function ensureSeeded() {
       ],
     )
   }
-  isSeeded = true
+  globalAny.isSeeded = true
 }
 
 export const getAllProducts = cache(async (): Promise<AdminProduct[]> => {

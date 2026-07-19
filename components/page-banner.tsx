@@ -7,6 +7,7 @@ export function PageBanner({
   tagline,
   backgroundImage,
   plain = false,
+  headingLevel = "h1",
   children,
 }: {
   title: React.ReactNode
@@ -14,8 +15,10 @@ export function PageBanner({
   tagline?: string
   backgroundImage?: string
   plain?: boolean
+  headingLevel?: "h1" | "h2" | "h3"
   children?: React.ReactNode
 }) {
+  const Heading = headingLevel || "h1"
   return (
     <section
       className={`relative overflow-hidden select-none transition-all duration-300 ${
@@ -58,9 +61,9 @@ export function PageBanner({
                   {tagline}
                 </p>
               )}
-              <h1 className="font-display text-2xl font-extrabold uppercase tracking-wider text-foreground sm:text-3xl md:text-4xl">
+              <Heading className="font-display text-2xl font-extrabold uppercase tracking-wider text-foreground sm:text-3xl md:text-4xl">
                 {title}
-              </h1>
+              </Heading>
               {description && (
                 <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground md:mx-0">
                   {description}

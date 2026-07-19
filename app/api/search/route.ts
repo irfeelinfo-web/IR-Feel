@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server"
 import { getAllProducts } from "@/lib/products-db"
+import { checkRateLimit, generateFingerprint } from "@/lib/rate-limit"
 
 export const dynamic = "force-dynamic"
 
 export async function GET(request: Request) {
+  // Fix #12: Rate limit search API
+  const ip = await generateFingerprint()
+  const isAllowed = await checkRateLimit("search:" + ip, 60, 60000) // 60 req per min
+  if (!isAllowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 })
+  }
   const { searchParams } = new URL(request.url)
   const q = (searchParams.get("q") ?? "").trim().toLowerCase()
 

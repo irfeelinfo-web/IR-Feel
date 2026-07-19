@@ -12,8 +12,6 @@ import { getLoggedInCustomer } from '@/lib/customer-auth'
 import { buildMetadata, SITE_URL, absoluteUrl, BRAND_EMAIL } from '@/lib/seo'
 import './globals.css'
 
-export const dynamic = "force-dynamic"
-
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-inter',
@@ -23,7 +21,7 @@ const inter = Inter({
 const anekBangla = Anek_Bangla({
   subsets: ['bengali', 'latin'],
   weight: ['400', '500', '600', '700'],
-  variable: '--font-hind',
+  variable: '--font-bengali',
   display: 'swap',
 })
 
