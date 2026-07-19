@@ -54,20 +54,50 @@ export async function POST(request: Request) {
       )
     }
 
-    // Vercel / Production: use Vercel Blob Storage
+    // Production (Vercel): use imgBB cloud hosting (free)
     if (process.env.VERCEL) {
-      const { put } = await import("@vercel/blob")
+      const apiKey = process.env.IMGBB_API_KEY
+      if (!apiKey) {
+        return NextResponse.json(
+          { error: "IMGBB_API_KEY সেট করা হয়নি। Vercel Environment Variables এ যোগ করুন।" },
+          { status: 500 },
+        )
+      }
 
-      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9)
-      const base = path.basename(file.name, ext).replace(/[^a-zA-Z0-9]/g, "-")
-      const blobPath = `uploads/${base}-${uniqueSuffix}${ext}`
+      // Convert file to base64
+      const bytes = await file.arrayBuffer()
+      const base64 = Buffer.from(bytes).toString("base64")
 
-      const blob = await put(blobPath, file, {
-        access: "public",
-        addRandomSuffix: false,
+      // Upload to imgBB
+      const imgbbForm = new FormData()
+      imgbbForm.append("key", apiKey)
+      imgbbForm.append("image", base64)
+      imgbbForm.append("name", path.basename(file.name, ext))
+
+      const imgbbRes = await fetch("https://api.imgbb.com/1/upload", {
+        method: "POST",
+        body: imgbbForm,
       })
 
-      return NextResponse.json({ url: blob.url })
+      if (!imgbbRes.ok) {
+        console.error("imgBB upload failed:", await imgbbRes.text())
+        return NextResponse.json(
+          { error: "ছবি আপলোড ব্যর্থ হয়েছে। আবার চেষ্টা করুন।" },
+          { status: 500 },
+        )
+      }
+
+      const imgbbData = await imgbbRes.json()
+      const imageUrl = imgbbData.data?.display_url || imgbbData.data?.url
+
+      if (!imageUrl) {
+        return NextResponse.json(
+          { error: "ছবি আপলোড ব্যর্থ হয়েছে।" },
+          { status: 500 },
+        )
+      }
+
+      return NextResponse.json({ url: imageUrl })
     }
 
     // Local development: save to public/images/uploads
