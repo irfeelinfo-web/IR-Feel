@@ -1,4 +1,5 @@
 import "server-only"
+import { createClient as createWebClient } from "@libsql/client/web"
 import { type Client, type InStatement } from "@libsql/client"
 import { existsSync, readFileSync, renameSync, mkdirSync } from "fs"
 import { join } from "path"
@@ -10,22 +11,24 @@ const globalForDb = globalThis as unknown as { __libsql?: Client; __dbReady?: bo
 function getClient(): Client {
   if (globalForDb.__libsql) return globalForDb.__libsql
 
-  const isProduction = !!process.env.TURSO_DATABASE_URL
+  // If Vercel environment is detected, we MUST use production web client to avoid read-only filesystem crash.
+  const isVercel = !!process.env.VERCEL
+  const isProduction = !!process.env.TURSO_DATABASE_URL || isVercel
 
   let client: Client
 
   if (isProduction) {
-    // Production: connect to remote Turso database using WEB client.
-    // This uses pure JS HTTP and completely avoids Next.js build-time worker thread deadlocks 
-    // and Vercel Turbopack/native module missing errors that occur with the node client.
-    // @ts-ignore
-    const { createClient } = require("@libsql/client/web")
-    client = createClient({
-      url: process.env.TURSO_DATABASE_URL!,
-      authToken: process.env.TURSO_AUTH_TOKEN,
+    if (!process.env.TURSO_DATABASE_URL) {
+      console.error("CRITICAL: TURSO_DATABASE_URL is missing in Vercel Environment Variables!")
+    }
+    // Production: connect to remote Turso database using statically imported WEB client.
+    // This guarantees Vercel NFT bundles it, avoiding "Cannot find module" at runtime.
+    client = createWebClient({
+      url: process.env.TURSO_DATABASE_URL || "libsql://dummy.turso.io", // fallback to prevent immediate url parse crash
+      authToken: process.env.TURSO_AUTH_TOKEN || "",
     })
   } else {
-    // Development: use local SQLite file using NODE client
+    // Development: use local SQLite file using dynamically required NODE client.
     // @ts-ignore
     const { createClient } = require("@libsql/client")
     const dataDir = join(process.cwd(), ".data")
