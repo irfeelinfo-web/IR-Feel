@@ -7,10 +7,11 @@ import { randomBytes } from "crypto"
 /* ── Turso / LibSQL client ── */
 const globalForDb = globalThis as unknown as { __libsql?: Client; __dbReady?: boolean }
 
+import { createClient as createWebClient } from "@libsql/client/web"
+
 async function getClient(): Promise<Client> {
   if (globalForDb.__libsql) return globalForDb.__libsql
 
-  // If Vercel environment is detected, we MUST use production web client to avoid read-only filesystem crash.
   const isVercel = !!process.env.VERCEL
   const isProduction = !!process.env.TURSO_DATABASE_URL || isVercel
 
@@ -20,19 +21,16 @@ async function getClient(): Promise<Client> {
     if (!process.env.TURSO_DATABASE_URL) {
       console.error("CRITICAL: TURSO_DATABASE_URL is missing in Vercel Environment Variables!")
     }
-    // Production: connect to remote Turso database using dynamically imported WEB client.
-    // await import() ensures Vercel NFT bundles it AND avoids top-level Turbopack build crashes.
-    const { createClient } = await import("@libsql/client/web")
-    client = createClient({
-      url: process.env.TURSO_DATABASE_URL || "libsql://dummy.turso.io", // fallback to prevent immediate url parse crash
+    client = createWebClient({
+      url: process.env.TURSO_DATABASE_URL || "libsql://dummy.turso.io",
       authToken: process.env.TURSO_AUTH_TOKEN || "",
     })
   } else {
     // Development: use local SQLite file using dynamically imported NODE client.
-    const { createClient } = await import("@libsql/client")
+    const { createClient: createNodeClient } = await import("@libsql/client")
     const dataDir = join(process.cwd(), ".data")
     if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true })
-    client = createClient({
+    client = createNodeClient({
       url: `file:${join(dataDir, "store.db")}`,
     })
   }
