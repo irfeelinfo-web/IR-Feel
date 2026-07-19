@@ -176,17 +176,22 @@ async function initDb(): Promise<void> {
       );
     `)
 
-    // Safe column migrations (ignore errors if columns exist)
-    const safeMigrations = [
-      "ALTER TABLE orders ADD COLUMN order_uid TEXT NOT NULL DEFAULT ''",
-      "ALTER TABLE customers ADD COLUMN google_id TEXT",
-      "ALTER TABLE customers ADD COLUMN avatar TEXT NOT NULL DEFAULT ''",
-      "ALTER TABLE customers ADD COLUMN reward_points INTEGER NOT NULL DEFAULT 0",
-      "ALTER TABLE customers ADD COLUMN password TEXT NOT NULL DEFAULT ''",
-      "ALTER TABLE rate_limits ADD COLUMN expires_at INTEGER NOT NULL DEFAULT 0",
+    // Safe column migrations — only add columns that don't already exist
+    const migrations: { table: string; column: string; sql: string }[] = [
+      { table: "orders", column: "order_uid", sql: "ALTER TABLE orders ADD COLUMN order_uid TEXT NOT NULL DEFAULT ''" },
+      { table: "customers", column: "google_id", sql: "ALTER TABLE customers ADD COLUMN google_id TEXT" },
+      { table: "customers", column: "avatar", sql: "ALTER TABLE customers ADD COLUMN avatar TEXT NOT NULL DEFAULT ''" },
+      { table: "customers", column: "reward_points", sql: "ALTER TABLE customers ADD COLUMN reward_points INTEGER NOT NULL DEFAULT 0" },
+      { table: "customers", column: "password", sql: "ALTER TABLE customers ADD COLUMN password TEXT NOT NULL DEFAULT ''" },
+      { table: "rate_limits", column: "expires_at", sql: "ALTER TABLE rate_limits ADD COLUMN expires_at INTEGER NOT NULL DEFAULT 0" },
+      { table: "customer_sessions", column: "expires_at", sql: "ALTER TABLE customer_sessions ADD COLUMN expires_at TEXT" },
     ]
-    for (const sql of safeMigrations) {
-      try { (await getClient()).execute(sql) } catch { /* column exists */ }
+    for (const m of migrations) {
+      const cols = await client.execute(`PRAGMA table_info(${m.table})`)
+      const exists = cols.rows.some((r: Record<string, unknown>) => r.name === m.column)
+      if (!exists) {
+        try { await client.execute(m.sql) } catch { /* skip */ }
+      }
     }
 
     // Backfill empty order_uid values
