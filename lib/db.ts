@@ -1,5 +1,4 @@
 import "server-only"
-import { createClient as createWebClient } from "@libsql/client/web"
 import { type Client, type InStatement } from "@libsql/client"
 import { existsSync, readFileSync, renameSync, mkdirSync } from "fs"
 import { join } from "path"
@@ -8,7 +7,7 @@ import { randomBytes } from "crypto"
 /* ── Turso / LibSQL client ── */
 const globalForDb = globalThis as unknown as { __libsql?: Client; __dbReady?: boolean }
 
-function getClient(): Client {
+async function getClient(): Promise<Client> {
   if (globalForDb.__libsql) return globalForDb.__libsql
 
   // If Vercel environment is detected, we MUST use production web client to avoid read-only filesystem crash.
@@ -21,16 +20,16 @@ function getClient(): Client {
     if (!process.env.TURSO_DATABASE_URL) {
       console.error("CRITICAL: TURSO_DATABASE_URL is missing in Vercel Environment Variables!")
     }
-    // Production: connect to remote Turso database using statically imported WEB client.
-    // This guarantees Vercel NFT bundles it, avoiding "Cannot find module" at runtime.
-    client = createWebClient({
+    // Production: connect to remote Turso database using dynamically imported WEB client.
+    // await import() ensures Vercel NFT bundles it AND avoids top-level Turbopack build crashes.
+    const { createClient } = await import("@libsql/client/web")
+    client = createClient({
       url: process.env.TURSO_DATABASE_URL || "libsql://dummy.turso.io", // fallback to prevent immediate url parse crash
       authToken: process.env.TURSO_AUTH_TOKEN || "",
     })
   } else {
-    // Development: use local SQLite file using dynamically required NODE client.
-    // @ts-ignore
-    const { createClient } = require("@libsql/client")
+    // Development: use local SQLite file using dynamically imported NODE client.
+    const { createClient } = await import("@libsql/client")
     const dataDir = join(process.cwd(), ".data")
     if (!existsSync(dataDir)) mkdirSync(dataDir, { recursive: true })
     client = createClient({
@@ -60,7 +59,7 @@ async function initDb(): Promise<void> {
   globalForDb.__dbReady = true
 
   try {
-    const client = getClient()
+    const client = await getClient()
 
     await client.executeMultiple(`
       CREATE TABLE IF NOT EXISTS site_content (
@@ -189,7 +188,7 @@ async function initDb(): Promise<void> {
       "ALTER TABLE rate_limits ADD COLUMN expires_at INTEGER NOT NULL DEFAULT 0",
     ]
     for (const sql of safeMigrations) {
-      try { await getClient().execute(sql) } catch { /* column exists */ }
+      try { (await getClient()).execute(sql) } catch { /* column exists */ }
     }
 
     // Backfill empty order_uid values
@@ -335,14 +334,16 @@ async function migrateJsonData() {
 /** Run a SELECT query and return all matching rows */
 export async function query<T = Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T[]> {
   await initDb()
-  const result = await getClient().execute({ sql, args: params as InStatement["args"] })
+  const client = await getClient()
+  const result = await client.execute({ sql, args: params as InStatement["args"] })
   return result.rows as unknown as T[]
 }
 
 /** Run an INSERT/UPDATE/DELETE and return affected info */
 export async function run(sql: string, params: unknown[] = []): Promise<{ rowsAffected: number; lastInsertRowid: bigint | number }> {
   await initDb()
-  const result = await getClient().execute({ sql, args: params as InStatement["args"] })
+  const client = await getClient()
+  const result = await client.execute({ sql, args: params as InStatement["args"] })
   return {
     rowsAffected: result.rowsAffected,
     lastInsertRowid: result.lastInsertRowid ?? 0,
