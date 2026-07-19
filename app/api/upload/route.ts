@@ -54,34 +54,39 @@ export async function POST(request: Request) {
       )
     }
 
+    // Vercel / Production: use Vercel Blob Storage
+    if (process.env.VERCEL) {
+      const { put } = await import("@vercel/blob")
+
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9)
+      const base = path.basename(file.name, ext).replace(/[^a-zA-Z0-9]/g, "-")
+      const blobPath = `uploads/${base}-${uniqueSuffix}${ext}`
+
+      const blob = await put(blobPath, file, {
+        access: "public",
+        addRandomSuffix: false,
+      })
+
+      return NextResponse.json({ url: blob.url })
+    }
+
+    // Local development: save to public/images/uploads
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    // Check for Vercel/serverless environment
-    if (process.env.VERCEL) {
-      return NextResponse.json(
-        { error: "Local file uploads are not supported on Vercel. Please configure cloud storage (e.g., AWS S3, Vercel Blob)." },
-        { status: 501 }
-      )
-    }
-
-    // Ensure upload directory exists
     const uploadDir = path.join(process.cwd(), "public", "images", "uploads")
     await mkdir(uploadDir, { recursive: true })
 
-    // Create unique filename
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9)
     const base = path.basename(file.name, ext).replace(/[^a-zA-Z0-9]/g, "-")
     const filename = `${base}-${uniqueSuffix}${ext}`
 
-    // Write file
     const filepath = path.join(uploadDir, filename)
     await writeFile(filepath, buffer)
 
-    // Return the URL
     return NextResponse.json({ url: `/images/uploads/${filename}` })
   } catch (error) {
     console.error("Upload error:", error)
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 })
+    return NextResponse.json({ error: "আপলোড ব্যর্থ হয়েছে। আবার চেষ্টা করুন।" }, { status: 500 })
   }
 }
