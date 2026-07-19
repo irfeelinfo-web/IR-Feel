@@ -172,15 +172,25 @@ async function ensureSeeded() {
 }
 
 export const getAllProducts = cache(async (): Promise<AdminProduct[]> => {
-  await ensureSeeded()
-  const rows = await query<ProductRow>("SELECT * FROM products ORDER BY sort_order ASC, created_at ASC")
-  return rows.map(rowToProduct)
+  try {
+    await ensureSeeded()
+    const rows = await query<ProductRow>("SELECT * FROM products ORDER BY sort_order ASC, created_at ASC")
+    return rows.map(rowToProduct)
+  } catch {
+    // DB unreachable — return built-in fallback products so the site still renders
+    return fallbackProducts
+  }
 })
 
 export async function getProductBySlug(id: string): Promise<AdminProduct | null> {
-  await ensureSeeded()
-  const row = await getOne<ProductRow>("SELECT * FROM products WHERE id = ?", [id])
-  return row ? rowToProduct(row) : null
+  try {
+    await ensureSeeded()
+    const row = await getOne<ProductRow>("SELECT * FROM products WHERE id = ?", [id])
+    return row ? rowToProduct(row) : null
+  } catch {
+    // DB unreachable — try fallback products
+    return fallbackProducts.find((p) => p.id === id) ?? null
+  }
 }
 
 export async function getFeaturedProducts(): Promise<AdminProduct[]> {
