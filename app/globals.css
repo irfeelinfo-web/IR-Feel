@@ -185,15 +185,21 @@ html, body {
 /* Professional Bengali typography — refined rendering for the Anek Bangla typeface */
 .font-bengali,
 :lang(bn) {
-  line-height: 1.7;
   letter-spacing: 0;
   font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
+/* Bengali body text needs generous line-height for readability */
+.font-bengali :is(p, span, li, td, th, dd, dt, label, a, blockquote),
+:lang(bn) :is(p, span, li, td, th, dd, dt, label, a, blockquote) {
+  line-height: 1.7;
+}
+
 /* Tighter, more confident leading for Bengali headings */
 .font-bengali :is(h1, h2, h3, h4),
+:lang(bn) :is(h1, h2, h3, h4),
 .font-bengali.is-heading {
   line-height: 1.4;
   letter-spacing: -0.01em;
