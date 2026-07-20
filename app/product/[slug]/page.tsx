@@ -13,7 +13,7 @@ import { JsonLd } from "@/components/json-ld"
 import { getSettings } from "@/lib/content"
 import { SITE_URL, absoluteUrl, BRAND_NAME } from "@/lib/seo"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {

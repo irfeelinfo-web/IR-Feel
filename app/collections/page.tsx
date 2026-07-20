@@ -8,7 +8,7 @@ import { collections } from "@/lib/products"
 import { getAllProducts } from "@/lib/products-db"
 import { buildMetadata } from "@/lib/seo"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 
 export async function generateMetadata() {

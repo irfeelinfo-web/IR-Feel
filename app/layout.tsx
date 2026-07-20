@@ -8,7 +8,7 @@ import { CartDrawer } from '@/components/cart-drawer'
 import { ChatWidget } from '@/components/chat-widget'
 import { JsonLd } from '@/components/json-ld'
 import { getSettings } from '@/lib/content'
-import { getLoggedInCustomer } from '@/lib/customer-auth'
+
 import { buildMetadata, SITE_URL, absoluteUrl, BRAND_EMAIL } from '@/lib/seo'
 import './globals.css'
 
@@ -119,7 +119,7 @@ export default async function RootLayout({
     },
   }
 
-  const customer = await getLoggedInCustomer()
+
 
   return (
     <html
@@ -128,7 +128,7 @@ export default async function RootLayout({
     >
       <body className="font-sans antialiased">
         <JsonLd data={[organizationLd, websiteLd]} />
-        <CustomerProvider initial={customer}>
+        <CustomerProvider>
           <WishlistProvider>
             <CartProvider>
               {children}

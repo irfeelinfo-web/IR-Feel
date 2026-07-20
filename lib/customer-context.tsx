@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react"
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from "react"
 
 export type CustomerData = {
   id: number
@@ -34,16 +34,16 @@ export function useCustomer() {
 
 export function CustomerProvider({
   children,
-  initial,
+  initial = null,
 }: {
   children: ReactNode
-  initial: CustomerData
+  initial?: CustomerData
 }) {
   const [customer, setCustomer] = useState<CustomerData>(initial)
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch("/api/auth/me")
+      const res = await fetch("/api/me")
       if (res.ok) {
         const data = await res.json()
         setCustomer(data.customer || null)
@@ -54,6 +54,13 @@ export function CustomerProvider({
       setCustomer(null)
     }
   }, [])
+
+  // Auto-fetch customer on mount when no server-side initial data provided
+  useEffect(() => {
+    if (!initial) {
+      refresh()
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const logout = useCallback(async () => {
     try {
@@ -71,3 +78,4 @@ export function CustomerProvider({
     </CustomerContext.Provider>
   )
 }
+

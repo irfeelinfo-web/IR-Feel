@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/site-footer"
 import { buildMetadata } from "@/lib/seo"
 import { getPages } from "@/lib/content"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 
 export async function generateMetadata() {

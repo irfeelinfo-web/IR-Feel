@@ -10,7 +10,7 @@ import { collections, getCollectionBySlug } from "@/lib/products"
 import { getCollectionProducts } from "@/lib/products-db"
 import { buildMetadata } from "@/lib/seo"
 
-export const dynamic = "force-dynamic"
+export const revalidate = 60
 
 
 export function generateStaticParams() {
