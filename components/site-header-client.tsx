@@ -186,7 +186,7 @@ export function SiteHeaderClient({
             <Link
               href={customer ? "/account" : "/login"}
               aria-label="Account"
-              className="flex h-10 w-10 items-center justify-center rounded-full text-violet-500/90 transition-all duration-300 hover:bg-violet-500/10 hover:text-violet-600 hover:shadow-[0_0_15px_rgba(139,92,246,0.25)] hover:scale-105 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-[#1b3a3a] dark:text-gold/90 transition-all duration-300 hover:bg-[#1b3a3a]/10 hover:text-[#1b3a3a] dark:hover:bg-gold/10 dark:hover:text-gold hover:shadow-[0_0_15px_rgba(27,58,58,0.2)] hover:scale-105 active:scale-95"
             >
               {customer?.avatar ? (
                 <span className="relative flex h-7 w-7 overflow-hidden rounded-full ring-2 ring-border">
