@@ -56,24 +56,14 @@ export function ProductCard({
     })
   }
 
-  const hasOptions = (product.sizes && product.sizes.length > 0) || (product.colors && product.colors.length > 0)
-
   // Add the item and go straight to the order/checkout page.
   function handleOrderNow() {
-    if (hasOptions) {
-      router.push(href)
-      return
-    }
     addToCart()
     router.push("/checkout")
   }
 
   // Add the item to the cart and open the drawer so the user can keep shopping.
   function handleAddToCart() {
-    if (hasOptions) {
-      router.push(href)
-      return
-    }
     addToCart()
     openCart()
   }
