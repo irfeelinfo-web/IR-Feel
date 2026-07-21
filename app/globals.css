@@ -216,7 +216,7 @@ html, body {
 
 .marquee-track {
   animation: marquee-scroll-rtl 40s linear infinite;
-  will-change: transform;
+  contain: layout style paint;
 }
 
 .marquee-pause:hover .marquee-track {
@@ -234,7 +234,7 @@ html, body {
 
 .announce-sheen {
   animation: announce-sheen-sweep 6s ease-in-out infinite;
-  will-change: transform;
+  contain: layout style paint;
 }
 
 @media (prefers-reduced-motion: reduce) {

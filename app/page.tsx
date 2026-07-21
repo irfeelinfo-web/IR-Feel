@@ -9,7 +9,7 @@ import { NewArrivals } from "@/components/home/new-arrivals"
 import { CustomerReviews } from "@/components/home/customer-reviews"
 import { getHome } from "@/lib/content"
 
-export const revalidate = 60
+export const revalidate = 300
 
 export default async function HomePage() {
   const home = await getHome()

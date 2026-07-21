@@ -11,7 +11,7 @@ export async function FeaturedProducts({ heading, subheading }: { heading?: stri
       {subheading && <p className="mt-2 text-center text-sm text-muted-foreground">{subheading}</p>}
       <div className="mt-10 grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5">
         {featuredProducts.slice(0, 5).map((product, i) => (
-          <ProductCard key={product.id} product={product} variant="featured" priority={i < 5} />
+          <ProductCard key={product.id} product={product} variant="featured" priority={i < 2} />
         ))}
       </div>
     </section>

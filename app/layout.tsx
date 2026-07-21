@@ -1,11 +1,15 @@
 import { Analytics } from '@vercel/analytics/next'
+import dynamic from 'next/dynamic'
 import type { Metadata, Viewport } from 'next'
 import { Inter, Archivo, Anek_Bangla } from 'next/font/google'
 import { CartProvider } from '@/lib/cart-context'
 import { WishlistProvider } from '@/lib/wishlist-context'
 import { CustomerProvider } from '@/lib/customer-context'
 import { CartDrawer } from '@/components/cart-drawer'
-import { ChatWidget } from '@/components/chat-widget'
+const ChatWidget = dynamic(() => import('@/components/chat-widget').then(m => m.ChatWidget), {
+  ssr: false,
+  loading: () => null,
+})
 import { JsonLd } from '@/components/json-ld'
 import { getSettings } from '@/lib/content'
 

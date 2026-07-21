@@ -1,5 +1,6 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect } from "react"
@@ -7,7 +8,10 @@ import { Truck, Search, Heart, ShoppingBag, Menu, X, UserCircle } from "lucide-r
 import { useCart } from "@/lib/cart-context"
 import { useWishlist } from "@/lib/wishlist-context"
 import { useCustomer } from "@/lib/customer-context"
-import { SearchOverlay } from "./search-overlay"
+const SearchOverlay = dynamic(() => import("./search-overlay").then(m => m.SearchOverlay), {
+  ssr: false,
+  loading: () => null,
+})
 import type { SiteSettings, AnnouncementConfig, NavItem } from "@/lib/site-config"
 
 export function SiteHeaderClient({

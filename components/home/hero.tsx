@@ -52,24 +52,35 @@ export function Hero({ slides }: { slides: HeroSlide[] }) {
     >
       {/* Background model images */}
       <div className="absolute inset-0">
-        {slides.map((s, i) => (
-          <div
-            key={i}
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-              i === index ? "opacity-100 z-0" : "opacity-0 pointer-events-none"
-            }`}
-          >
-            <Image
-              src={s.image || "/placeholder.svg"}
-              alt={s.alt}
-              fill
-              priority={i === 0}
-              loading={i === 0 ? "eager" : "lazy"}
-              sizes="100vw"
-              className="object-cover object-center md:object-right"
-            />
-          </div>
-        ))}
+        {slides.map((s, i) => {
+          // Only mount current + adjacent slides to reduce image decode/memory
+          const prev = (index - 1 + count) % count
+          const next = (index + 1) % count
+          const shouldMount = i === index || i === prev || i === next
+
+          return (
+            <div
+              key={i}
+              className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                i === index ? "opacity-100 z-0" : "opacity-0 pointer-events-none"
+              }`}
+            >
+              {shouldMount ? (
+                <Image
+                  src={s.image || "/placeholder.svg"}
+                  alt={s.alt}
+                  fill
+                  priority={i === 0}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  sizes="100vw"
+                  className="object-cover object-center md:object-right"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-primary" />
+              )}
+            </div>
+          )
+        })}
         {/* Mobile gradient overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent sm:bg-gradient-to-r sm:from-black/50 sm:via-black/20 sm:to-transparent z-[1]" />
       </div>
