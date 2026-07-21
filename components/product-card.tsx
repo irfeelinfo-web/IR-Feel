@@ -98,7 +98,7 @@ export function ProductCard({
         <div className="mt-3 flex items-stretch gap-2">
           <button
             onClick={handleOrderNow}
-            className="flex-1 rounded-lg border border-border/40 bg-white/40 dark:bg-black/40 py-2.5 text-[11px] font-bold tracking-widest text-foreground backdrop-blur-md transition-all duration-300 hover:bg-primary hover:text-white hover:shadow-lg hover:shadow-primary/10"
+            className="flex-1 rounded-lg border border-primary/40 bg-white/40 dark:bg-black/40 py-2.5 text-[11px] font-bold tracking-widest text-foreground backdrop-blur-md transition-all duration-300 hover:bg-primary hover:text-white hover:shadow-lg hover:shadow-primary/10"
             style={{
               boxShadow: "0 8px 24px -4px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
             }}
