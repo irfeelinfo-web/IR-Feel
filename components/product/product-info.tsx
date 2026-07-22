@@ -185,31 +185,38 @@ export function ProductInfo({ product, settings }: { product: DetailedProduct; s
       </div>
 
       {/* Contact Order Buttons */}
-      {(settings.productWhatsappButton || settings.productCallButton) && (
-        <div className="mt-2 flex gap-2 sm:gap-3">
-          {settings.productWhatsappButton && (
-            <button
-              onClick={() => {
-                const url = `https://wa.me/${(settings.whatsappNumber || settings.phone).replace(/[^0-9]/g, "")}?text=${encodeURIComponent(`Hi, I want to order ${product.name} (Size: ${size}, Color: ${color}).\nProduct Link: ${window.location.href}`)}`;
-                window.open(url, '_blank', 'noopener,noreferrer');
-              }}
-              className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#25D366] text-[11px] font-semibold tracking-widest text-white transition-all duration-300 ease-out hover:bg-[#128C7E] active:scale-[0.98] sm:h-14 sm:gap-2 sm:text-xs"
-            >
-              <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
-              Order On WhatsApp
-            </button>
-          )}
-          {settings.productCallButton && (
-            <a
-              href={`tel:${settings.phone.replace(/[^0-9+]/g, "")}`}
-              className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#284a92] text-[11px] font-semibold tracking-widest text-white transition-all duration-300 ease-out hover:bg-[#1a3266] active:scale-[0.98] sm:h-14 sm:gap-2 sm:text-xs"
-            >
-              <Phone className="h-4 w-4 sm:h-5 sm:w-5" />
-              Call For Order
-            </a>
-          )}
-        </div>
-      )}
+      {(() => {
+        const whatsappNum = (settings.whatsappNumber || settings.phone || "").replace(/[^0-9]/g, "")
+        const callNum = (settings.phone || "").replace(/[^0-9+]/g, "")
+        const showWhatsapp = settings.productWhatsappButton && whatsappNum.length > 0
+        const showCall = settings.productCallButton && callNum.length > 0
+        if (!showWhatsapp && !showCall) return null
+        return (
+          <div className="mt-2 flex gap-2 sm:gap-3">
+            {showWhatsapp && (
+              <button
+                onClick={() => {
+                  const url = `https://wa.me/${whatsappNum}?text=${encodeURIComponent(`Hi, I want to order ${product.name} (Size: ${size}, Color: ${color}).\nProduct Link: ${window.location.href}`)}`;
+                  window.open(url, '_blank', 'noopener,noreferrer');
+                }}
+                className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#25D366] text-[11px] font-semibold tracking-widest text-white transition-all duration-300 ease-out hover:bg-[#128C7E] active:scale-[0.98] sm:h-14 sm:gap-2 sm:text-xs"
+              >
+                <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+                Order On WhatsApp
+              </button>
+            )}
+            {showCall && (
+              <a
+                href={`tel:${callNum}`}
+                className="flex h-12 flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#284a92] text-[11px] font-semibold tracking-widest text-white transition-all duration-300 ease-out hover:bg-[#1a3266] active:scale-[0.98] sm:h-14 sm:gap-2 sm:text-xs"
+              >
+                <Phone className="h-4 w-4 sm:h-5 sm:w-5" />
+                Call For Order
+              </a>
+            )}
+          </div>
+        )
+      })()}
 
       <div className="my-7 h-px bg-border" />
 

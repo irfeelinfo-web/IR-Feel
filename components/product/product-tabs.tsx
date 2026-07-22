@@ -96,7 +96,7 @@ export function ProductTabs({ product }: { product: DetailedProduct }) {
                 <div className="flex items-center gap-4 mb-4">
                   <div className="flex text-gold">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <Star key={i} className={`h-5 w-5 ${i < product.rating ? "fill-gold text-gold" : "text-border"}`} />
+                      <Star key={i} className={`h-5 w-5 ${i < Math.floor(product.rating) ? "fill-gold text-gold" : "text-border"}`} />
                     ))}
                   </div>
                   <span className="font-bold text-lg">{product.rating.toFixed(1)} / 5</span>

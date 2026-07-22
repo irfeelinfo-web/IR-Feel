@@ -54,9 +54,9 @@ export function Hero({ slides }: { slides: HeroSlide[] }) {
       <div className="absolute inset-0">
         {slides.map((s, i) => {
           // Only mount current + adjacent slides to reduce image decode/memory
-          const prev = (index - 1 + count) % count
-          const next = (index + 1) % count
-          const shouldMount = i === index || i === prev || i === next
+          const prevIdx = (index - 1 + count) % count
+          const nextIdx = (index + 1) % count
+          const shouldMount = i === index || i === prevIdx || i === nextIdx
 
           return (
             <div

@@ -7,7 +7,7 @@ type Review = ReviewItem
 function ReviewCard({ review }: { review: Review }) {
   return (
     <article className="relative flex w-[300px] shrink-0 flex-col gap-4 rounded-2xl glass-order-card p-6 sm:w-[360px]">
-      <Quote className="absolute right-5 top-5 h-8 w-8 text-gold/20" aria-hidden />
+      <Quote className="absolute right-5 top-5 h-8 w-8 text-gold/20" aria-hidden="true" />
       <div className="flex items-center gap-1" aria-label={`${review.rating} out of 5 stars`}>
         {Array.from({ length: 5 }).map((_, i) => (
           <Star

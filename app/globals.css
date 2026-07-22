@@ -59,10 +59,10 @@ html, body {
 
 :root {
   color-scheme: light;
-  /* Override Tailwind's default --font-sans so the loaded Inter + Hind Siliguri
-     (Bengali) fonts actually apply. Hind Siliguri provides the ৳ (Taka) glyph. */
-  --font-sans: var(--font-inter), var(--font-hind), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-archivo), var(--font-hind), ui-sans-serif, system-ui, sans-serif;
+  /* Override Tailwind's default --font-sans so the loaded Inter + Anek Bangla
+     (Bengali) fonts actually apply. Anek Bangla provides the ৳ (Taka) glyph. */
+  --font-sans: var(--font-inter), var(--font-bengali), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-archivo), var(--font-bengali), ui-sans-serif, system-ui, sans-serif;
   --gold: oklch(0.7 0.062 70);
   --background: oklch(1 0 0);
   --foreground: oklch(0.18 0.02 185);

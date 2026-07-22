@@ -10,7 +10,7 @@ export async function NewArrivals({ heading, subheading }: { heading?: string; s
       <SectionHeading>{heading || "NEW ARRIVALS"}</SectionHeading>
       {subheading && <p className="mt-2 text-center text-sm text-muted-foreground">{subheading}</p>}
       <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
-        {newArrivals.slice(0, 8).map((product, i) => (
+        {newArrivals.slice(0, 8).map((product) => (
           <ProductCard key={product.id} product={product} variant="simple" priority={false} />
         ))}
       </div>

@@ -26,12 +26,16 @@ export default function Error({
       </h2>
       <p className="mb-8 max-w-md text-sm text-muted-foreground">
         অনাকাঙ্ক্ষিত সমস্যার জন্য আমরা আন্তরিকভাবে দুঃখিত। আপনি পেজটি রিলোড করতে পারেন অথবা হোমপেজে ফিরে যেতে পারেন।
-        <br/><br/>
-        <strong className="text-red-500 font-mono text-xs text-left block p-2 bg-red-500/10 rounded overflow-x-auto">
-          DEBUG: {error?.message || "Unknown error"}
-          <br/>
-          DIGEST: {error?.digest || "none"}
-        </strong>
+        {process.env.NODE_ENV !== 'production' && (
+          <>
+            <br/><br/>
+            <strong className="text-red-500 font-mono text-xs text-left block p-2 bg-red-500/10 rounded overflow-x-auto">
+              DEBUG: {error?.message || "Unknown error"}
+              <br/>
+              DIGEST: {error?.digest || "none"}
+            </strong>
+          </>
+        )}
       </p>
       
       <div className="flex flex-col gap-3 sm:flex-row">

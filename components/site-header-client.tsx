@@ -315,7 +315,7 @@ export function SiteHeaderClient({
     </header>
     {/* Spacer to prevent content from jumping when header shrinks on scroll */}
     {/* Un-scrolled header is 72px + 40px (announcement bar) = 112px. Without banner, it's 72px. */}
-    <div style={{ height: bannerVisible ? "112px" : "72px" }} aria-hidden="true" />
+    <div style={{ height: bannerVisible ? "112px" : "72px", transition: "height 0.3s ease" }} aria-hidden="true" />
     </>
   )
 }
